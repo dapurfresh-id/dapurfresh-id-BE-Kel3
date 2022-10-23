@@ -26,6 +26,7 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 }
 
 func (db *userConnection) Create(ctx context.Context, user *entities.User) (*entities.User, error) {
+	user.Password = hashAndSalt([]byte(user.Password))
 	res := db.connection.WithContext(ctx).Create(&user)
 	if res.Error != nil {
 		return nil, res.Error
