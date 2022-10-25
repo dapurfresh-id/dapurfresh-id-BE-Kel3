@@ -14,7 +14,8 @@ import (
 
 type AuthService interface {
 	VerifyCredential(username string, password string) interface{}
-	CreateUser(ctx context.Context, userReq *request.RequestRegister) (*entities.User, error)
+	CreateUser(ctx context.Context, userReq request.RequestRegister) (*entities.User, error)
+	IsDuplicateUsername(username string) bool
 }
 
 type authService struct {
@@ -39,11 +40,16 @@ func (service *authService) VerifyCredential(username string, password string) i
 		return false
 	}
 	return false
+
 }
 
-func (service *authService) CreateUser(ctx context.Context, userReq *request.RequestRegister) (*entities.User, error) {
+func (service *authService) CreateUser(ctx context.Context, userReq request.RequestRegister) (*entities.User, error) {
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return nil, err
+	}
 	userCreate := &entities.User{
-		ID:        uuid.NewString(),
+		ID:        id,
 		Name:      userReq.Name,
 		Username:  userReq.Username,
 		Password:  userReq.Password,
@@ -59,6 +65,11 @@ func (service *authService) CreateUser(ctx context.Context, userReq *request.Req
 		return nil, err
 	}
 	return res, nil
+}
+
+func (service *authService) IsDuplicateUsername(username string) bool {
+	res := service.userRepository.IsDuplicateEmail(username)
+	return !(res.Error == nil)
 }
 
 func comparePassword(hashedPwd string, plainPassword []byte) bool {

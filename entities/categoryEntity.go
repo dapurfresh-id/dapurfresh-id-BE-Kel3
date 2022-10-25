@@ -1,6 +1,8 @@
 package entities
 
+import "github.com/google/uuid"
+
 type Category struct {
-	ID   string `gorm:"primary_key:auto_increment" json:"id"`
-	Name string `gorm:"type:varchar(255)" json:"name"`
+	ID   uuid.UUID `gorm:"primaryKey" json:"id"`
+	Name string    `gorm:"type:varchar(255)" json:"name"`
 }

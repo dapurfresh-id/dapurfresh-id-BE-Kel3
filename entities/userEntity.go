@@ -2,16 +2,18 @@ package entities
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type User struct {
-	ID        string    `gorm:"primary_key:auto_increment" json:"id"`
+	ID        uuid.UUID `gorm:"primaryKey" json:"id"`
+	Username  string    `gorm:"uniqueIndex;type:varchar(255)" json:"username"`
 	Name      string    `gorm:"type:varchar(255)" json:"name" validate:"required, max=100"`
-	Username  string    `gorm:"type:varchar(255)" json:"username" validate:"required, max=100"`
 	Password  string    `gorm:"->;<-;not null" json:"-" validate:"required, min=6"`
 	Phone     string    `gorm:"type:varchar(255)" json:"phone" validate:"required, min=11"`
 	Image     string    `json:"image"`
-	Token     string    `json:"token,omitempty"`
+	Token     string    `gorm:"-" json:"token,omitempty"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Cart      *Cart     `json:"cart,omitempty"`

@@ -6,15 +6,16 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 )
 
 type JWTService interface {
-	GenerateToken(userID string) string
+	GenerateToken(userID uuid.UUID) string
 	ValidateToken(token string) (*jwt.Token, error)
 }
 
 type jwtCustomClaim struct {
-	UserID string `json:"user_id"`
+	UserID uuid.UUID `json:"user_id"`
 	jwt.StandardClaims
 }
 
@@ -33,12 +34,12 @@ func NewJWTService() JWTService {
 func getSecretKey() string {
 	secretKey := os.Getenv("JWT_SECRET")
 	if secretKey != "" {
-		secretKey = "woishop"
+		secretKey = "dapurfreshid"
 	}
 	return secretKey
 }
 
-func (j *jwtService) GenerateToken(UserID string) string {
+func (j *jwtService) GenerateToken(UserID uuid.UUID) string {
 	claims := &jwtCustomClaim{
 		UserID,
 		jwt.StandardClaims{

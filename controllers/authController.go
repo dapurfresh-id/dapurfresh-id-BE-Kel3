@@ -29,15 +29,17 @@ func NewAuthController(authService services.AuthService, jwtService services.JWT
 
 func (c *authController) Login(ctx *gin.Context) {
 	var reqLogin request.RequestLogin
-	errObj := ctx.ShouldBind(&reqLogin)
-	if errObj != nil {
-		response := helpers.BuildErrorResponse("Failed to process request", errObj.Error(), helpers.EmptyObj{})
+	err := ctx.ShouldBind(&reqLogin)
+	if err != nil {
+		response := helpers.BuildErrorResponse("Failed to process request", err.Error(), helpers.EmptyObj{})
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
 	authResult := c.authService.VerifyCredential(reqLogin.Username, reqLogin.Password)
 	if v, ok := authResult.(entities.User); ok {
-		response := helpers.BuildResponse(true, "OK!", v)
+		generatedToken := c.jwtService.GenerateToken(v.ID)
+		v.Token = generatedToken
+		response := helpers.BuildResponse(true, "Ok!", v)
 		ctx.JSON(http.StatusOK, response)
 		return
 	}
@@ -53,14 +55,21 @@ func (c *authController) Register(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
-	createdUser, err := c.authService.CreateUser(ctx, &reqRegister)
+
+	if !c.authService.IsDuplicateUsername(reqRegister.Username) {
+		response := helpers.BuildErrorResponse("Failed to process request", "Duplicate email", helpers.EmptyObj{})
+		ctx.JSON(http.StatusConflict, response)
+		return
+	}
+	createdUser, err := c.authService.CreateUser(ctx, reqRegister)
 	if err != nil {
 		response := helpers.BuildErrorResponse("Failed to created", errObj.Error(), helpers.EmptyObj{})
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
+	} else {
+		token := c.jwtService.GenerateToken(createdUser.ID)
+		createdUser.Token = token
+		response := helpers.BuildResponse(true, "Created!", createdUser)
+		ctx.JSON(http.StatusCreated, response)
 	}
-	token := c.jwtService.GenerateToken(createdUser.ID)
-	createdUser.Token = token
-	response := helpers.BuildResponse(true, "Created!", createdUser)
-	ctx.JSON(http.StatusCreated, response)
 }

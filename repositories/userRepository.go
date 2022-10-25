@@ -13,6 +13,7 @@ type UserRepository interface {
 	Create(ctx context.Context, user *entities.User) (*entities.User, error)
 	Update(ctx context.Context, user *entities.User) (*entities.User, error)
 	VerifyCredential(username string, password string) interface{}
+	IsDuplicateEmail(username string) (tx *gorm.DB)
 }
 
 type userConnection struct {
@@ -51,12 +52,17 @@ func (db *userConnection) Update(ctx context.Context, user *entities.User) (*ent
 }
 
 func (db *userConnection) VerifyCredential(username string, password string) interface{} {
-	var user *entities.User
+	var user entities.User
 	res := db.connection.Where("username = ?", username).Take(&user)
 	if res.Error == nil {
 		return user
 	}
 	return nil
+}
+
+func (db *userConnection) IsDuplicateEmail(username string) (tx *gorm.DB) {
+	var user entities.User
+	return db.connection.Where("username = ?", username).Take(&user)
 }
 
 func hashAndSalt(pwd []byte) string {

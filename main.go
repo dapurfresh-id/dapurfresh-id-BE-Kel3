@@ -32,6 +32,5 @@ func main() {
 		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/register", authController.Register)
 	}
-
 	r.Run()
 }
