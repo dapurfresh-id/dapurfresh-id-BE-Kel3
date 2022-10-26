@@ -13,12 +13,15 @@ import (
 )
 
 var (
-	contextTimeOut time.Duration               = 10 * time.Second
-	db             *gorm.DB                    = database.ConnectDB()
-	userRepository repositories.UserRepository = repositories.NewUserRepository(db)
-	authService    services.AuthService        = services.NewAuthService(userRepository, contextTimeOut)
-	jwtService     services.JWTService         = services.NewJWTService()
-	authController controllers.AuthController  = controllers.NewAuthController(authService, jwtService)
+	contextTimeOut     time.Duration                   = 10 * time.Second
+	db                 *gorm.DB                        = database.ConnectDB()
+	userRepository     repositories.UserRepository     = repositories.NewUserRepository(db)
+	categoryRepository repositories.CategoryRepository = repositories.NewCategoryRepository(db)
+	authService        services.AuthService            = services.NewAuthService(userRepository, contextTimeOut)
+	jwtService         services.JWTService             = services.NewJWTService()
+	categoryService    services.CategoryService        = services.NewCategoryService(categoryRepository, contextTimeOut)
+	authController     controllers.AuthController      = controllers.NewAuthController(authService, jwtService)
+	categoryController controllers.CategoryController  = controllers.NewCategoryController(categoryService)
 )
 
 func main() {
@@ -32,5 +35,11 @@ func main() {
 		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/register", authController.Register)
 	}
+	categoryRoutes := r.Group("/category")
+	{
+		categoryRoutes.POST("/create", categoryController.Create)
+		categoryRoutes.GET("/read", categoryController.Read)
+	}
+
 	r.Run()
 }
