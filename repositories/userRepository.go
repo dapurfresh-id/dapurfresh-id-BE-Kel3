@@ -14,6 +14,8 @@ type UserRepository interface {
 	Update(ctx context.Context, user *entities.User) (*entities.User, error)
 	VerifyCredential(username string, password string) interface{}
 	IsDuplicateEmail(username string) (tx *gorm.DB)
+	UpdateUser(user entities.User) entities.User
+	GetUser(userID string) entities.User
 }
 
 type userConnection struct {
@@ -72,4 +74,23 @@ func hashAndSalt(pwd []byte) string {
 		panic("Failed to hash a password")
 	}
 	return string(hash)
+}
+
+func (db *userConnection) UpdateUser(user entities.User) entities.User {
+	if user.Password != "" {
+		user.Password = hashAndSalt([]byte(user.Password))
+	} else {
+		var tempUser entities.User
+		db.connection.Find(&tempUser, user.ID)
+		user.Password = tempUser.Password
+	}
+
+	db.connection.Save(&user)
+	return user
+}
+
+func (db *userConnection) GetUser(userID string) entities.User {
+	var user entities.User
+	db.connection.Find(&user, userID)
+	return user
 }
