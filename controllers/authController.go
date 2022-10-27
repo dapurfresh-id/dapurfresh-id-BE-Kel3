@@ -57,7 +57,7 @@ func (c *authController) Register(ctx *gin.Context) {
 	}
 
 	if !c.authService.IsDuplicateUsername(reqRegister.Username) {
-		response := helpers.BuildErrorResponse("Failed to process request", "Duplicate email", helpers.EmptyObj{})
+		response := helpers.BuildErrorResponse("Failed to process request", "Duplicate username", helpers.EmptyObj{})
 		ctx.JSON(http.StatusConflict, response)
 		return
 	}
