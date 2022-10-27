@@ -13,7 +13,8 @@ import (
 
 type CategoryService interface {
 	CreateCategory(ctx context.Context, categoryReq request.RequestCategory) (*entities.Category, error)
-	ReadCategory(ctx context.Context, category *entities.Category) (*entities.Category, error)
+	FindAllCategory(ctx context.Context, category []*entities.Category) ([]*entities.Category, error)
+	FindById(ctx context.Context, category []*entities.Category, categoryId string) ([]*entities.Category, error)
 }
 
 type categoryService struct {
@@ -28,8 +29,16 @@ func NewCategoryService(categoryRepo repositories.CategoryRepository, time time.
 	}
 }
 
-func (service *categoryService) ReadCategory(ctx context.Context, category *entities.Category) (*entities.Category, error) {
-	res, err := service.categoryRepository.Read(ctx, category)
+func (service *categoryService) FindAllCategory(ctx context.Context, category []*entities.Category) ([]*entities.Category, error) {
+	res, err := service.categoryRepository.FindAllCategory(ctx, category)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (service *categoryService) FindById(ctx context.Context, category []*entities.Category, categoryId string) ([]*entities.Category, error) {
+	res, err := service.categoryRepository.FindById(ctx, category, categoryId)
 	if err != nil {
 		return nil, err
 	}

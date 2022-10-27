@@ -12,7 +12,8 @@ import (
 
 type CategoryController interface {
 	Create(ctx *gin.Context)
-	Read(ctx *gin.Context)
+	GetAllCategory(ctx *gin.Context)
+	GetCategoryById(ctx *gin.Context)
 }
 
 type categoryController struct {
@@ -25,17 +26,33 @@ func NewCategoryController(categoryService services.CategoryService) CategoryCon
 	}
 }
 
-func (c *categoryController) Read(ctx *gin.Context) {
+func (c *categoryController) GetAllCategory(ctx *gin.Context) {
 	var reqCategory request.RequestCategory
-	var category entities.Category
+	var category []*entities.Category
 	errObj := ctx.ShouldBind(&reqCategory)
-	readedCategory, err := c.categoryService.ReadCategory(ctx, &category)
+	readedCategory, err := c.categoryService.FindAllCategory(ctx, category)
 	if err != nil {
 		response := helpers.BuildErrorResponse("Failed to readed", errObj.Error(), helpers.EmptyObj{})
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	} else {
 		response := helpers.BuildResponse(true, "Readed!", readedCategory)
+		ctx.JSON(http.StatusOK, response)
+	}
+}
+
+func (c *categoryController) GetCategoryById(ctx *gin.Context) {
+	categoryId := ctx.Param("id")
+	var reqCategory request.RequestCategory
+	var category []*entities.Category
+	errObj := ctx.ShouldBind(&reqCategory)
+	foundCategory, err := c.categoryService.FindById(ctx, category, categoryId)
+	if err != nil {
+		response := helpers.BuildErrorResponse("Failed to readed", errObj.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	} else {
+		response := helpers.BuildResponse(true, "Readed!", foundCategory)
 		ctx.JSON(http.StatusCreated, response)
 	}
 }

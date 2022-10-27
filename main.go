@@ -38,7 +38,8 @@ func main() {
 	categoryRoutes := r.Group("/category")
 	{
 		categoryRoutes.POST("/create", categoryController.Create)
-		categoryRoutes.GET("/read", categoryController.Read)
+		categoryRoutes.GET("/", categoryController.GetAllCategory)
+		categoryRoutes.GET("/id/:id", categoryController.GetCategoryById)
 	}
 
 	r.Run()
