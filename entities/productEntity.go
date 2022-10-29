@@ -10,5 +10,5 @@ type Product struct {
 	UnitType   string    `gorm:"not null;default:gr" json:"unit_type"`
 	Image      string    `json:"image"`
 	CategoryID string    `json:"category_id,omitempty"`
-	Categories Category  `gorm:"foreignkey:CategoryID;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"category"`
+	Categories Category  `gorm:"foreignkey:CategoryID;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"categories"`
 }

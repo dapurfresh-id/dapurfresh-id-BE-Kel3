@@ -40,7 +40,7 @@ func (c *categoryController) GetAllCategory(ctx *gin.Context) {
 
 func (c *categoryController) GetCategoryById(ctx *gin.Context) {
 	categoryId := ctx.Param("id")
-	foundCategory, err := c.categoryService.FindById(ctx, categoryId)
+	foundCategory, err := c.categoryService.FindCategoryById(ctx, categoryId)
 	if err != nil {
 		response := helpers.BuildErrorResponse("Failed to readed", err.Error(), helpers.EmptyObj{})
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)

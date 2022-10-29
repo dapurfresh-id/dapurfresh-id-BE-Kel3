@@ -17,11 +17,14 @@ var (
 	db                 *gorm.DB                        = database.ConnectDB()
 	userRepository     repositories.UserRepository     = repositories.NewUserRepository(db)
 	categoryRepository repositories.CategoryRepository = repositories.NewCategoryRepository(db)
+	productRepository  repositories.ProductRepository  = repositories.NewProductRepository(db)
 	authService        services.AuthService            = services.NewAuthService(userRepository, contextTimeOut)
 	jwtService         services.JWTService             = services.NewJWTService()
 	categoryService    services.CategoryService        = services.NewCategoryService(categoryRepository, contextTimeOut)
+	productService     services.ProductService         = services.NewProductService(productRepository, contextTimeOut)
 	authController     controllers.AuthController      = controllers.NewAuthController(authService, jwtService)
 	categoryController controllers.CategoryController  = controllers.NewCategoryController(categoryService)
+	productController  controllers.ProductController   = controllers.NewProductController(productService)
 )
 
 func main() {
@@ -34,6 +37,11 @@ func main() {
 	{
 		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/register", authController.Register)
+	}
+	productRoutes := r.Group("/product")
+	{
+		productRoutes.GET("/", productController.GetAllProduct)
+		productRoutes.GET("/:id", productController.GetProductById)
 	}
 	categoryRoutes := r.Group("/category")
 	{
