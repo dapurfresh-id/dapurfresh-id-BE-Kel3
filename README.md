@@ -43,9 +43,9 @@ to create compile file: ./dapur-fresh-id
 
 ### Register
 ### POST
-https://dapur-fresh-id.herokuapp.com/api/auth/register
+[https://dapur-fresh-id.herokuapp.com/api/auth/register]
 
-Request Body:
+```sh Request Body:
 {
     "username":"aldi177",
     "name": "aldi177",
@@ -84,12 +84,12 @@ Error Response (status: 400, 409):
     ],
     "data": {}
 }
-
+```
 ### Login
 ### POST
-https://dapur-fresh-id.herokuapp.com/api/auth/register
+[https://dapur-fresh-id.herokuapp.com/api/auth/login]
 
-Request Body:
+```sh Request Body:
 {
     "username":"aldi177",
     "password": "aldialdi17"
@@ -108,15 +108,12 @@ Response Success (status: 200) :
         "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMiIsImV4cCI6MTY1MTgyMDAwMCwiaWF0IjoxNjIwMjg0MDAwLCJpc3MiOiJhZG1pbiJ9.HtnuWlBaevEO3fHAI4McH5W8axvw_3Og47RUI3m9IyI"
     }
 }
-
-
-https://dapur-fresh-id.herokuapp.com/api/auth/login
-
+```
 ### Categories
 ### GET
-https://dapur-fresh-id.herokuapp.com/api/api/category
+[https://dapur-fresh-id.herokuapp.com/api/api/category]
 
-Response Success (status: 200) :
+```sh Response Success (status: 200) :
 
 {
     "status": true,
@@ -138,13 +135,13 @@ Error Response (status: 400):
     ],
     "data": {}
 }
-
+```
 ### Categori ID
 ### GET
 
-https://dapur-fresh-id.herokuapp.com/api/api/category/:id
+[https://dapur-fresh-id.herokuapp.com/api/api/category/:id]
 
-Response Success (status: 200) :
+```sh Response Success (status: 200) :
 {
     "status": true,
     "message": "OK!",
@@ -165,3 +162,4 @@ Error Response (status: 400):
     ],
     "data": {}
 }
+```
