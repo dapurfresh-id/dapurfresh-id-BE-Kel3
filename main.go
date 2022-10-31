@@ -42,7 +42,7 @@ func main() {
 	}
 	categoryRoutes := v1.Group("/category")
 	{
-		categoryRoutes.GET("/", categoryController.GetAllCategory)
+		categoryRoutes.GET("", categoryController.GetAllCategory)
 		categoryRoutes.GET("/:id", categoryController.GetCategoryById)
 	}
 	r.Run()

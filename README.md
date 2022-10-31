@@ -42,7 +42,7 @@ to create compile file: ./dapur-fresh-id
 
 ### Register
 ### POST
-[https://dapur-fresh-id.herokuapp.com/api/auth/register]
+[https://dapurfresh.herokuapp.com/api/auth/login]
 
 ```sh Request Body:
 {
@@ -86,7 +86,7 @@ Error Response (status: 400, 409):
 ```
 ### Login
 ### POST
-[https://dapur-fresh-id.herokuapp.com/api/auth/login]
+[https://dapurfresh.herokuapp.com/api/auth/login]
 
 ```sh Request Body:
 {
@@ -110,7 +110,7 @@ Response Success (status: 200) :
 ```
 ### Categories
 ### GET
-[https://dapur-fresh-id.herokuapp.com/api/api/category]
+[https://dapurfresh.herokuapp.com/api/category]
 
 ```sh Response Success (status: 200) :
 
@@ -138,7 +138,7 @@ Error Response (status: 400):
 ### Categori ID
 ### GET
 
-[https://dapur-fresh-id.herokuapp.com/api/api/category/:id]
+[https://dapurfresh.herokuapp.com/api/category/{id}]
 
 ```sh Response Success (status: 200) :
 {
