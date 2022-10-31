@@ -8,6 +8,7 @@ import (
 	"github.com/aldisaputra17/dapur-fresh-id/database"
 	"github.com/aldisaputra17/dapur-fresh-id/repositories"
 	"github.com/aldisaputra17/dapur-fresh-id/services"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -30,12 +31,16 @@ func main() {
 
 	r := gin.Default()
 
-	authRoutes := r.Group("/auth")
+	r.Use(cors.Default())
+
+	v1 := r.Group("api")
+
+	authRoutes := v1.Group("/auth")
 	{
 		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/register", authController.Register)
 	}
-	categoryRoutes := r.Group("/category")
+	categoryRoutes := v1.Group("/category")
 	{
 		categoryRoutes.GET("/", categoryController.GetAllCategory)
 		categoryRoutes.GET("/:id", categoryController.GetCategoryById)
