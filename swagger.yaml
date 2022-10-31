@@ -1,0 +1,589 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: Dapur Fresh API
+  description: This is Dapur Fresh API documentation
+schemes: 
+- http
+host: localhost:8080
+basePath: /api/v1
+securityDefinitions:
+  bearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+paths:
+  /auth/register:
+    post:
+      consumes:
+        - application/json
+      description: User Registration Api
+      parameters:
+        - description: Register
+          in: body
+          name: user
+          required: true
+          schema:
+            type: object
+            required:
+              - username
+              - password
+              - phone
+              - name
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+              phone:
+                type: string
+              name:
+                type: string  
+      produces:
+        - application/json
+      responses:
+        '201':
+          description: Created
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              error:
+                type: string
+              message:
+                type: string
+              success:
+                type: boolean
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              error:
+                type: string
+              message:
+                type: string
+              success:
+                type: boolean
+        '409':
+          description: Conflict
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              error:
+                type: string
+              message:
+                type: string
+              success:
+                type: boolean
+      summary: User Register
+      tags:
+        - Authenticate
+  /auth/login:
+    post:
+      description: Authenticates a user and provides a JWT to Authorize API calls
+      operationId: Authentication
+      parameters:
+        - description: Login
+          in: body
+          name: user
+          required: true
+          schema:
+            type: object
+            required:
+              - username
+              - password
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Ok
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              error:
+                type: string
+              message:
+                type: string
+              success:
+                type: boolean
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              error:
+                type: string
+              message:
+                type: string
+              success:
+                type: boolean
+        '401':
+          description: Unauthorized
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              error:
+                type: string
+              message:
+                type: string
+              success:
+                type: boolean
+      summary: Provides a JSON Web Token
+      tags:
+        - Authenticate
+  /products:
+    get:
+      consumes:
+        - application/json
+      description: Get Products By Search or sort
+      parameters:
+        - description: product by category
+          format: category_id
+          in: query
+          name: product by category
+          type: string
+        - description: product search by page
+          format: name
+          in: query
+          name: page
+          type: string
+        - description: cart search by limit
+          format: name
+          in: query
+          name: limit
+          type: string
+        - description: cart search by sort
+          format: name
+          in: query
+          name: sort
+          type: string
+        - description: cart search by name
+          format: name
+          in: query
+          name: name.constains
+          type: string
+        - description: cart search by name
+          format: name
+          in: query
+          name: name.in
+          type: string
+        - description: cart search by name
+          format: name
+          in: query
+          name: name.equal
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Ok
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                data:
+                  type: string
+                errors:
+                  type: string
+                message:
+                  type: string
+                success:
+                  type: boolean
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              errors:
+                type: string
+              message:
+                type: string
+              success:
+                type: boolean
+      security:
+        - bearerAuth: []        
+      summary: Get All Products
+      tags:
+        - Products
+  /product/{id}:
+    get:
+      consumes:
+        - application/json
+      description: Get Product by id
+      parameters:
+        - description: Product ID
+          in: path
+          name: id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Ok
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              errors:
+                type: string
+              message:
+                type: string
+              success:
+                type: boolean
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              errors:
+                type: string
+              message:
+                type: string
+              success:
+                type: boolean
+      security:
+        - bearerAuth: []          
+      summary: Get All Products By ID
+      tags:
+        - Products
+  /cart:
+    post:
+      consumes:
+        - application/json
+      description: Add Cart API
+      parameters:
+        - description: Add cart
+          in: body
+          name: cart
+          required: true
+          schema:
+            properties:
+              product_id:
+                type: string
+              quantity:
+                type: integer
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Ok
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              errors:
+                type: string
+              message:
+                type: string
+              status:
+                type: boolean
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              errors:
+                type: string
+              message:
+                type: string
+              success:
+                type: boolean
+        '422':
+          description: Unprocessable Entity
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              errors:
+                type: string
+              message:
+                type: string
+              success:
+                type: boolean
+      security:
+        - bearerAuth: []  
+      summary: Add to Cart
+      tags:
+        - Cart  
+  /cart/{id}:
+    delete:
+      consumes:
+        - application/json
+      description: Delete a cart
+      parameters:
+        - description: Cart ID
+          in: path
+          name: id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Ok
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              errors:
+                type: string
+              message:
+                type: string
+              success:
+                type: boolean
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              errors:
+                type: string
+              message:
+                type: string
+              success:
+                type: boolean
+      security:
+        - bearerAuth: []
+      summary: Remove cart
+      tags:
+        - Cart
+  /order:
+    post:
+      consumes:
+        - application/json
+      description: Order API
+      parameters:
+        - description: Order
+          in: body
+          name: order
+          required: true
+          schema:
+            properties:
+              address:
+                type: string
+              catatan:
+                type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Ok
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              errors:
+                type: string
+              message:
+                type: string
+              success:
+                type: boolean
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              errors:
+                type: string
+              message:
+                type: string
+              success:
+                type: boolean
+        '422':
+          description: Unprocessable Entity
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              errors:
+                type: string
+              message:
+                type: string
+              success:
+                type: boolean
+      security:
+        - bearerAuth: []  
+      summary: order
+      tags:
+        - Order
+  /orders:
+    get:
+      consumes:
+        - application/json
+      description: get order history
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Ok
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                data:
+                  type: string
+                errors:
+                  type: string
+                message:
+                  type: string
+                success:
+                  type: boolean
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              errors:
+                type: string
+              message:
+                type: string
+              success:
+                type: boolean
+      security:
+        - bearerAuth: []        
+      summary: Get History order
+      tags:
+        - Order      
+  /user/{id}:
+    get:
+      consumes:
+        - application/json
+      description: Get User profile
+      parameters:
+        - description: User ID
+          in: path
+          name: id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Ok
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              errors:
+                type: string
+              message:
+                type: string
+              success:
+                type: boolean
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              errors:
+                type: string
+              message:
+                type: string
+              success:
+                type: boolean
+      security:
+        - bearerAuth: []          
+      summary: Get user profile
+      tags:
+        - User
+    put:
+      consumes:
+        - application/json
+      description: Update User API
+      parameters:
+        - description: User ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: Update user
+          in: body
+          name: user
+          required: true
+          schema:
+            properties:
+              image:
+                type: string
+              username:
+                type: string
+              password:
+                type: string
+              phone:
+                type: string
+              name:
+                type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Ok
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              errors:
+                type: string
+              message:
+                type: string
+              success:
+                type: boolean
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            properties:
+              data:
+               type: string
+              errors:
+                type: string
+              message:
+                type: string
+              success:
+                type: boolean
+      security:
+        - bearerAuth: []          
+      summary: Update User
+      tags:
+        - User
