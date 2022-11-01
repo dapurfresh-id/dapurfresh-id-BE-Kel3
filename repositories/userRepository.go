@@ -15,7 +15,7 @@ type UserRepository interface {
 	VerifyCredential(username string, password string) interface{}
 	IsDuplicateEmail(username string) (tx *gorm.DB)
 	UpdateUser(user entities.User) entities.User
-	GetUser(userID string) entities.User
+	GetUser(userID string) *entities.User
 }
 
 type userConnection struct {
@@ -89,8 +89,8 @@ func (db *userConnection) UpdateUser(user entities.User) entities.User {
 	return user
 }
 
-func (db *userConnection) GetUser(userID string) entities.User {
-	var user entities.User
-	db.connection.Find(&user, userID)
+func (db *userConnection) GetUser(userID string) *entities.User {
+	var user *entities.User
+	db.connection.First(&user, userID)
 	return user
 }

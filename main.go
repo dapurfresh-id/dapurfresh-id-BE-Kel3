@@ -38,8 +38,8 @@ func main() {
 
 	userRoutes := r.Group("/", middleware.AuthorizeJWT(jwtService))
 	{
-		userRoutes.GET("show", userController.GetUser)
-		userRoutes.PUT("update:id", userController.UpdateUser)
+		userRoutes.GET("user", userController.GetUser)
+		userRoutes.PUT("user", userController.UpdateUser)
 	}
 	r.Run()
 }

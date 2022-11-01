@@ -11,7 +11,7 @@ import (
 
 type UserService interface {
 	UpdateUser(user request.RequestUpdateUser) entities.User
-	GetUser(userID string) entities.User
+	GetUser(userID string) *entities.User
 }
 
 type userService struct {
@@ -34,6 +34,6 @@ func (service *userService) UpdateUser(user request.RequestUpdateUser) entities.
 	return updatedUser
 }
 
-func (service *userService) GetUser(userID string) entities.User {
+func (service *userService) GetUser(userID string) *entities.User {
 	return service.userRepository.GetUser(userID)
 }
