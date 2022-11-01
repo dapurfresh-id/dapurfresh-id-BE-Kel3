@@ -48,6 +48,13 @@ func (c *userController) UpdateUser(context *gin.Context) {
 	if err != nil {
 		panic(err.Error())
 	}
+
+	var err1 = context.SaveUploadedFile(userReqUpdate.Image, "assets/"+userReqUpdate.Image.Filename)
+	if err1 != nil {
+		context.String(http.StatusInternalServerError, "unknown error")
+		return
+	}
+
 	userReqUpdate.ID = id
 	u := c.userService.UpdateUser(userReqUpdate)
 	res := helpers.BuildResponse(true, "OK!", u)
