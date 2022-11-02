@@ -17,6 +17,14 @@ type ResponseCart struct {
 	Total   int         `json:"total"`
 }
 
+type ResponseUser struct {
+	Success bool                   `json:"status"`
+	Message string                 `json:"message"`
+	Errors  interface{}            `json:"errors"`
+	Data    interface{}            `json:"data"`
+	Image   map[string]interface{} `json:"image"`
+}
+
 type EmptyObj struct{}
 
 func BuildResponse(success bool, message string, data interface{}) Response {
@@ -47,6 +55,17 @@ func BuildSuccessAddCart(success bool, message string, data interface{}, total i
 		Errors:  nil,
 		Data:    data,
 		Total:   total,
+	}
+	return res
+}
+
+func BuildSuccessUpdate(success bool, message string, data interface{}, image map[string]interface{}) ResponseUser {
+	res := ResponseUser{
+		Success: success,
+		Message: message,
+		Errors:  nil,
+		Data:    data,
+		Image:   image,
 	}
 	return res
 }

@@ -2,12 +2,10 @@ package entities
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type User struct {
-	ID        uuid.UUID `gorm:"primaryKey" json:"id"`
+	ID        string    `gorm:"type:uuid;default:uuid_generate_v4()" json:"id"`
 	Username  string    `gorm:"uniqueIndex;type:varchar(255)" json:"username"`
 	Name      string    `gorm:"type:varchar(255)" json:"name" validate:"required, max=100"`
 	Password  string    `gorm:"->;<-;not null" json:"-" validate:"required, min=6"`

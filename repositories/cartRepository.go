@@ -11,7 +11,7 @@ import (
 
 type CartRepository interface {
 	AddCart(ctx context.Context, cart *entities.Cart) (*entities.Cart, error)
-	GetProdIdAndUserId(ctx context.Context, userID string, prodID string) ([]*entities.Cart, error)
+	GetProdIdAndUserId(ctx context.Context, userID string, productID string) ([]*entities.Cart, error)
 }
 
 type cartConnection struct {
@@ -24,9 +24,9 @@ func NewCartRepository(db *gorm.DB) CartRepository {
 	}
 }
 
-func (db *cartConnection) GetProdIdAndUserId(ctx context.Context, userID string, prodID string) ([]*entities.Cart, error) {
+func (db *cartConnection) GetProdIdAndUserId(ctx context.Context, userID string, productID string) ([]*entities.Cart, error) {
 	var carts []*entities.Cart
-	res := db.connection.WithContext(ctx).Where("user_id = ? and prod_id = ?", userID, prodID).Find(&carts)
+	res := db.connection.WithContext(ctx).Where("user_id = ? and product_id = ?", userID, productID).Find(&carts)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -62,7 +62,7 @@ func (db *cartConnection) AddCart(ctx context.Context, cart *entities.Cart) (*en
 	}
 
 	res := db.connection.WithContext(ctx).Create(&cart)
-	db.connection.Preload("Products").Find(&cart)
+	// db.connection.Preload("Products").Find(&cart)
 	if res.Error != nil {
 		return nil, err
 	}

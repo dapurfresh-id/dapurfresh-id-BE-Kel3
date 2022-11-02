@@ -44,12 +44,12 @@ func (service *authService) VerifyCredential(username string, password string) i
 }
 
 func (service *authService) CreateUser(ctx context.Context, userReq request.RequestRegister) (*entities.User, error) {
-	id, err := uuid.NewRandom()
-	if err != nil {
-		return nil, err
-	}
+	// id, err := uuid.NewRandom()
+	// if err != nil {
+	// 	return nil, err
+	// }
 	userCreate := &entities.User{
-		ID:        id,
+		ID:        uuid.NewString(),
 		Name:      userReq.Name,
 		Username:  userReq.Username,
 		Password:  userReq.Password,

@@ -11,7 +11,8 @@ import (
 
 type UserRepository interface {
 	Create(ctx context.Context, user *entities.User) (*entities.User, error)
-	Update(ctx context.Context, user *entities.User) (*entities.User, error)
+	Update(ctx context.Context, user *entities.User, img string) (*entities.User, error)
+	FindById(ctx context.Context, id string) ([]*entities.User, error)
 	VerifyCredential(username string, password string) interface{}
 	IsDuplicateEmail(username string) (tx *gorm.DB)
 }
@@ -35,7 +36,7 @@ func (db *userConnection) Create(ctx context.Context, user *entities.User) (*ent
 	return user, nil
 }
 
-func (db *userConnection) Update(ctx context.Context, user *entities.User) (*entities.User, error) {
+func (db *userConnection) Update(ctx context.Context, user *entities.User, img string) (*entities.User, error) {
 	if user.Password != "" {
 		user.Password = hashAndSalt([]byte(user.Password))
 	} else {
@@ -44,7 +45,7 @@ func (db *userConnection) Update(ctx context.Context, user *entities.User) (*ent
 		user.Password = tempUser.Password
 	}
 
-	res := db.connection.Save(&user)
+	res := db.connection.WithContext(ctx).Save(&user)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -63,6 +64,15 @@ func (db *userConnection) VerifyCredential(username string, password string) int
 func (db *userConnection) IsDuplicateEmail(username string) (tx *gorm.DB) {
 	var user entities.User
 	return db.connection.Where("username = ?", username).Take(&user)
+}
+
+func (db *userConnection) FindById(ctx context.Context, id string) ([]*entities.User, error) {
+	var user []*entities.User
+	res := db.connection.WithContext(ctx).Where("id = ?", id).Find(&user)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return user, nil
 }
 
 func hashAndSalt(pwd []byte) string {
