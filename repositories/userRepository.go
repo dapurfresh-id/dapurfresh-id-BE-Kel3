@@ -77,6 +77,7 @@ func hashAndSalt(pwd []byte) string {
 }
 
 func (db *userConnection) UpdateUser(user entities.User) entities.User {
+	log.Println("tes up-ser", user)
 	if user.Password != "" {
 		user.Password = hashAndSalt([]byte(user.Password))
 	} else {
@@ -90,7 +91,14 @@ func (db *userConnection) UpdateUser(user entities.User) entities.User {
 }
 
 func (db *userConnection) GetUser(userID string) *entities.User {
+	log.Println("tes-repo", userID)
 	var user *entities.User
-	db.connection.First(&user, userID)
-	return user
+	// db.connection.First(&user, userID)
+	res := db.connection.Where("id = ?", userID).Take(&user)
+
+	// return user
+	if res.Error == nil {
+		return user
+	}
+	return nil
 }

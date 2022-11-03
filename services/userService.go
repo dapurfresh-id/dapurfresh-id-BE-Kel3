@@ -25,6 +25,7 @@ func NewUserService(userRepo repositories.UserRepository) UserService {
 }
 
 func (service *userService) UpdateUser(user request.RequestUpdateUser) entities.User {
+	log.Println("tes up-ser", user)
 	userToUpdate := entities.User{}
 	err := smapping.FillStruct(&userToUpdate, smapping.MapFields(&user))
 	if err != nil {
@@ -35,5 +36,6 @@ func (service *userService) UpdateUser(user request.RequestUpdateUser) entities.
 }
 
 func (service *userService) GetUser(userID string) *entities.User {
+	log.Println("tes-ser", userID)
 	return service.userRepository.GetUser(userID)
 }
