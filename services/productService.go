@@ -2,16 +2,21 @@ package services
 
 import (
 	"context"
-
+	"fmt"
 	"time"
 
 	"github.com/aldisaputra17/dapur-fresh-id/entities"
+	"github.com/aldisaputra17/dapur-fresh-id/helpers"
 	"github.com/aldisaputra17/dapur-fresh-id/repositories"
+	"github.com/gin-gonic/gin"
 )
 
 type ProductService interface {
 	FindAllProduct(ctx context.Context) ([]*entities.Product, error)
 	FindProductById(ctx context.Context, productId string) (*entities.Product, error)
+	FindProductByCategory(ctx context.Context, categoryId string) (*[]entities.Product, error)
+	LimitProduct(ctx context.Context, limit int) (*[]entities.Product, error)
+	PaginantionProduct(ctx *gin.Context, paginat *entities.Pagination) (helpers.Response, error)
 }
 
 type productService struct {
@@ -40,4 +45,56 @@ func (service *productService) FindProductById(ctx context.Context, productId st
 		return nil, err
 	}
 	return res, nil
+}
+
+func (service *productService) FindProductByCategory(ctx context.Context, categoryId string) (*[]entities.Product, error) {
+	res, err := service.productRepository.FindProductByCategory(ctx, categoryId)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (service *productService) LimitProduct(ctx context.Context, limit int) (*[]entities.Product, error) {
+	res, err := service.productRepository.LimitProduct(ctx, limit)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+func (service *productService) PaginantionProduct(ctx *gin.Context, paginat *entities.Pagination) (helpers.Response, error) {
+	operationResult, totalPages := service.productRepository.PaginationProduct(paginat)
+
+	if operationResult.Error != nil {
+		return helpers.Response{Success: true, Message: operationResult.Error.Error()}, nil
+	}
+
+	var data = operationResult.Result.(*entities.Pagination)
+
+	urlPath := ctx.Request.URL.Path
+
+	searchQueryParams := ""
+
+	for _, search := range paginat.Searchs {
+		searchQueryParams += fmt.Sprintf("&%s.%s=%s", search.Column, search.Action, search.Query)
+	}
+
+	data.FirstPage = fmt.Sprintf("%s?limit=%d&page=%d&sort=%s", urlPath, paginat.Limit, 0, paginat.Sort) + searchQueryParams
+	data.LastPage = fmt.Sprintf("%s?limit=%d&page=%d&sort=%s", urlPath, paginat.Limit, totalPages, paginat.Sort) + searchQueryParams
+
+	if data.Page > 0 {
+		// set previous page pagination response
+		data.PreviousPage = fmt.Sprintf("%s?limit=%d&page=%d&sort=%s", urlPath, paginat.Limit, data.Page-1, paginat.Sort) + searchQueryParams
+	}
+
+	if data.Page < totalPages {
+		// set next page pagination response
+		data.NextPage = fmt.Sprintf("%s?limit=%d&page=%d&sort=%s", urlPath, paginat.Limit, data.Page+1, paginat.Sort) + searchQueryParams
+	}
+
+	if data.Page > totalPages {
+		// reset previous page
+		data.PreviousPage = ""
+	}
+	return helpers.BuildResponse(true, "Ok", data), nil
 }

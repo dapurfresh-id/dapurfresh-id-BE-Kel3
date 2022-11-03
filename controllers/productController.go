@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/aldisaputra17/dapur-fresh-id/helpers"
 	"github.com/aldisaputra17/dapur-fresh-id/request"
@@ -12,6 +13,9 @@ import (
 type ProductController interface {
 	GetAllProduct(ctx *gin.Context)
 	GetProductById(ctx *gin.Context)
+	GetProductByCategory(ctx *gin.Context)
+	GetLimitProduct(ctx *gin.Context)
+	PaginationProduct(ctx *gin.Context)
 }
 
 type productController struct {
@@ -49,4 +53,50 @@ func (c *productController) GetProductById(ctx *gin.Context) {
 		response := helpers.BuildResponse(true, "Readed!", foundProduct)
 		ctx.JSON(http.StatusCreated, response)
 	}
+}
+
+func (c *productController) GetProductByCategory(ctx *gin.Context) {
+	categoryId := ctx.Query("category_id")
+	foundProduct, err := c.productService.FindProductByCategory(ctx, categoryId)
+	if err != nil {
+		response := helpers.BuildErrorResponse("Failed to readed", err.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	} else {
+		response := helpers.BuildResponse(true, "Readed!", foundProduct)
+		ctx.JSON(http.StatusCreated, response)
+	}
+}
+
+func (c *productController) GetLimitProduct(ctx *gin.Context) {
+	limit := ctx.Query("limit")
+	intLimit, err := strconv.Atoi(limit)
+	foundProduct, err := c.productService.LimitProduct(ctx, intLimit)
+	if err != nil {
+		response := helpers.BuildErrorResponse("Failed to readed", err.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	} else {
+		response := helpers.BuildResponse(true, "Readed!", foundProduct)
+		ctx.JSON(http.StatusCreated, response)
+	}
+}
+
+func (c *productController) PaginationProduct(ctx *gin.Context) {
+	code := http.StatusOK
+	pagination := helpers.GeneratePaginationRequest(ctx)
+
+	response, err := c.productService.PaginantionProduct(ctx, pagination)
+	if err != nil {
+		res := helpers.BuildErrorResponse("Failed pagination products", err.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	if !response.Success {
+		code = http.StatusBadRequest
+	}
+
+	res := helpers.BuildResponse(true, "Ok", response)
+	ctx.AbortWithStatusJSON(code, res)
 }

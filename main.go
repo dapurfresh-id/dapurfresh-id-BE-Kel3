@@ -42,6 +42,9 @@ func main() {
 	{
 		productRoutes.GET("/", productController.GetAllProduct)
 		productRoutes.GET("/:id", productController.GetProductById)
+		productRoutes.GET("/search", productController.PaginationProduct)
+		productRoutes.GET("/category", productController.GetProductByCategory)
+		productRoutes.GET("/limit", productController.GetLimitProduct)
 	}
 	categoryRoutes := r.Group("/category")
 	{
