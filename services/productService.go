@@ -15,6 +15,9 @@ type ProductService interface {
 	FindAllProduct(ctx context.Context) ([]*entities.Product, error)
 	FindProductById(ctx context.Context, productId string) (*entities.Product, error)
 	FindProductByCategory(ctx context.Context, categoryId string) (*[]entities.Product, error)
+	FindProductByNameEqual(ctx context.Context, name string) (*entities.Product, error)
+	FindProductByNameContains(ctx context.Context, name string) (*entities.Product, error)
+	FindProductByNameLike(ctx context.Context, name string) (*entities.Product, error)
 	LimitProduct(ctx context.Context, limit int) (*[]entities.Product, error)
 	PaginantionProduct(ctx *gin.Context, paginat *entities.Pagination) (helpers.Response, error)
 }
@@ -55,6 +58,28 @@ func (service *productService) FindProductByCategory(ctx context.Context, catego
 	return res, nil
 }
 
+func (service *productService) FindProductByNameEqual(ctx context.Context, name string) (*entities.Product, error) {
+	res, err := service.productRepository.FindProductByNameEqual(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (service *productService) FindProductByNameContains(ctx context.Context, name string) (*entities.Product, error) {
+	res, err := service.productRepository.FindProductByNameContains(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+func (service *productService) FindProductByNameLike(ctx context.Context, name string) (*entities.Product, error) {
+	res, err := service.productRepository.FindProductByNameLike(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
 func (service *productService) LimitProduct(ctx context.Context, limit int) (*[]entities.Product, error) {
 	res, err := service.productRepository.LimitProduct(ctx, limit)
 	if err != nil {

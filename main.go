@@ -45,6 +45,12 @@ func main() {
 		productRoutes.GET("/search", productController.PaginationProduct)
 		productRoutes.GET("/category", productController.GetProductByCategory)
 		productRoutes.GET("/limit", productController.GetLimitProduct)
+		nameProductRoutes := productRoutes.Group("/name")
+		{
+			nameProductRoutes.GET("equal", productController.GetProductByNameEqual)
+			nameProductRoutes.GET("contains", productController.GetProductByNameContains)
+			nameProductRoutes.GET("like", productController.GetProductByNameLike)
+		}
 	}
 	categoryRoutes := r.Group("/category")
 	{

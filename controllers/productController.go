@@ -14,6 +14,9 @@ type ProductController interface {
 	GetAllProduct(ctx *gin.Context)
 	GetProductById(ctx *gin.Context)
 	GetProductByCategory(ctx *gin.Context)
+	GetProductByNameEqual(ctx *gin.Context)
+	GetProductByNameContains(ctx *gin.Context)
+	GetProductByNameLike(ctx *gin.Context)
 	GetLimitProduct(ctx *gin.Context)
 	PaginationProduct(ctx *gin.Context)
 }
@@ -58,6 +61,45 @@ func (c *productController) GetProductById(ctx *gin.Context) {
 func (c *productController) GetProductByCategory(ctx *gin.Context) {
 	categoryId := ctx.Query("category_id")
 	foundProduct, err := c.productService.FindProductByCategory(ctx, categoryId)
+	if err != nil {
+		response := helpers.BuildErrorResponse("Failed to readed", err.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	} else {
+		response := helpers.BuildResponse(true, "Readed!", foundProduct)
+		ctx.JSON(http.StatusCreated, response)
+	}
+}
+
+func (c *productController) GetProductByNameEqual(ctx *gin.Context) {
+	name := ctx.Query("name")
+	foundProduct, err := c.productService.FindProductByNameEqual(ctx, name)
+	if err != nil {
+		response := helpers.BuildErrorResponse("Failed to readed", err.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	} else {
+		response := helpers.BuildResponse(true, "Readed!", foundProduct)
+		ctx.JSON(http.StatusCreated, response)
+	}
+}
+
+func (c *productController) GetProductByNameContains(ctx *gin.Context) {
+	name := ctx.Query("name")
+	foundProduct, err := c.productService.FindProductByNameContains(ctx, name)
+	if err != nil {
+		response := helpers.BuildErrorResponse("Failed to readed", err.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	} else {
+		response := helpers.BuildResponse(true, "Readed!", foundProduct)
+		ctx.JSON(http.StatusCreated, response)
+	}
+}
+
+func (c *productController) GetProductByNameLike(ctx *gin.Context) {
+	name := ctx.Query("name")
+	foundProduct, err := c.productService.FindProductByNameLike(ctx, name)
 	if err != nil {
 		response := helpers.BuildErrorResponse("Failed to readed", err.Error(), helpers.EmptyObj{})
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
