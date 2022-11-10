@@ -3,12 +3,15 @@ package services
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/aldisaputra17/dapur-fresh-id/entities"
 	"github.com/aldisaputra17/dapur-fresh-id/helpers"
 	"github.com/aldisaputra17/dapur-fresh-id/repositories"
+	"github.com/aldisaputra17/dapur-fresh-id/request"
 	"github.com/gin-gonic/gin"
+	"github.com/mashingan/smapping"
 )
 
 type ProductService interface {
@@ -20,6 +23,7 @@ type ProductService interface {
 	FindProductByNameLike(ctx context.Context, name string) (*entities.Product, error)
 	LimitProduct(ctx context.Context, limit int) (*[]entities.Product, error)
 	PaginantionProduct(ctx *gin.Context, paginat *entities.Pagination) (helpers.Response, error)
+	CheckOutProduct(ctx context.Context, product request.RequestCheckoutProduct) entities.Product
 }
 
 type productService struct {
@@ -80,6 +84,17 @@ func (service *productService) FindProductByNameLike(ctx context.Context, name s
 	}
 	return res, nil
 }
+
+func (service *productService) CheckOutProduct(ctx context.Context, product request.RequestCheckoutProduct) entities.Product {
+	productCheckout := entities.Product{}
+	err := smapping.FillStruct(&productCheckout, smapping.MapFields(&product))
+	if err != nil {
+		log.Fatalf("Failed map %v:", err)
+	}
+	updatedUser := service.productRepository.CheckOutProduct(ctx, productCheckout)
+	return updatedUser
+}
+
 func (service *productService) LimitProduct(ctx context.Context, limit int) (*[]entities.Product, error) {
 	res, err := service.productRepository.LimitProduct(ctx, limit)
 	if err != nil {

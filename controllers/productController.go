@@ -19,6 +19,7 @@ type ProductController interface {
 	GetProductByNameLike(ctx *gin.Context)
 	GetLimitProduct(ctx *gin.Context)
 	PaginationProduct(ctx *gin.Context)
+	UpdateCheckOutProduct(ctx *gin.Context)
 }
 
 type productController struct {
@@ -108,6 +109,19 @@ func (c *productController) GetProductByNameLike(ctx *gin.Context) {
 		response := helpers.BuildResponse(true, "Readed!", foundProduct)
 		ctx.JSON(http.StatusCreated, response)
 	}
+}
+
+func (c *productController) UpdateCheckOutProduct(ctx *gin.Context) {
+	var userReqUpdate request.RequestCheckoutProduct
+	errObj := ctx.ShouldBind(&userReqUpdate)
+	if errObj != nil {
+		res := helpers.BuildErrorResponse("Failed to process request", errObj.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+	u := c.productService.CheckOutProduct(ctx, userReqUpdate)
+	res := helpers.BuildResponse(true, "OK!", u)
+	ctx.JSON(http.StatusOK, res)
 }
 
 func (c *productController) GetLimitProduct(ctx *gin.Context) {

@@ -7,4 +7,5 @@ type RequestProduct struct {
 	UnitType   string `json:"unittype" form:"unittype" binding:"required"`
 	Image      string `json:"image" form:"image" binding:"required"`
 	CategoryID string `json:"categoryid" form:"categoryid" binding:"required"`
+	Arebuyed   int    `json:"are_buyed" form:"are_buyed" binding:"required"`
 }

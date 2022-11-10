@@ -11,4 +11,5 @@ type Product struct {
 	Image      string    `json:"image"`
 	CategoryID string    `json:"category_id,omitempty"`
 	Categories Category  `gorm:"foreignkey:CategoryID;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"categories"`
+	Arebuyed   int       `json:"are_buyed"`
 }

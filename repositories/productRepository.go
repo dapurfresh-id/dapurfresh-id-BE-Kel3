@@ -20,6 +20,7 @@ type ProductRepository interface {
 	FindProductByNameLike(ctx context.Context, name string) (*entities.Product, error)
 	LimitProduct(ctx context.Context, limit int) (*[]entities.Product, error)
 	PaginationProduct(pagination *entities.Pagination) (helpers.PaginationResult, int)
+	CheckOutProduct(ctx context.Context, product entities.Product) entities.Product
 }
 
 type productConnection struct {
@@ -50,7 +51,6 @@ func (db *productConnection) FindProductById(ctx context.Context, productId stri
 	}
 	return product, nil
 }
-
 func (db *productConnection) FindProductByCategory(ctx context.Context, categoryId string) (*[]entities.Product, error) {
 	var product *[]entities.Product
 	res := db.connection.WithContext(ctx).Where("category_id = ?", categoryId).Preload("Categories").Find(&product)
@@ -88,6 +88,12 @@ func (db *productConnection) FindProductByNameContains(ctx context.Context, name
 	}
 	return product, nil
 }
+
+func (db *productConnection) CheckOutProduct(ctx context.Context, product entities.Product) entities.Product {
+	db.connection.WithContext(ctx).Save(&product)
+	return product
+}
+
 func (db *productConnection) LimitProduct(ctx context.Context, limit int) (*[]entities.Product, error) {
 	var product *[]entities.Product
 	res := db.connection.WithContext(ctx).Limit(limit).Preload("Categories").Find(&product)
