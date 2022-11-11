@@ -12,7 +12,7 @@ import (
 )
 
 type ProductRepository interface {
-	FindAllProduct(ctx context.Context) ([]*entities.Product, error)
+	FindAllProduct(ctx context.Context) (*[]entities.Product, error)
 	FindProductById(ctx context.Context, productId string) (*entities.Product, error)
 	FindProductByCategory(ctx context.Context, categoryId string) (*[]entities.Product, error)
 	FindProductByNameEqual(ctx context.Context, name string) (*entities.Product, error)
@@ -20,7 +20,7 @@ type ProductRepository interface {
 	FindProductByNameLike(ctx context.Context, name string) (*entities.Product, error)
 	LimitProduct(ctx context.Context, limit int) (*[]entities.Product, error)
 	PaginationProduct(pagination *entities.Pagination) (helpers.PaginationResult, int)
-	CheckOutProduct(ctx context.Context, product entities.Product) entities.Product
+	PopularProduct(ctx context.Context) (*[]entities.Product, error)
 }
 
 type productConnection struct {
@@ -33,8 +33,8 @@ func NewProductRepository(db *gorm.DB) ProductRepository {
 	}
 }
 
-func (db *productConnection) FindAllProduct(ctx context.Context) ([]*entities.Product, error) {
-	var product []*entities.Product
+func (db *productConnection) FindAllProduct(ctx context.Context) (*[]entities.Product, error) {
+	var product *[]entities.Product
 	res := db.connection.WithContext(ctx).Preload("Categories").Find(&product)
 	if res.Error != nil {
 		return nil, res.Error
@@ -89,9 +89,13 @@ func (db *productConnection) FindProductByNameContains(ctx context.Context, name
 	return product, nil
 }
 
-func (db *productConnection) CheckOutProduct(ctx context.Context, product entities.Product) entities.Product {
-	db.connection.WithContext(ctx).Save(&product)
-	return product
+func (db *productConnection) PopularProduct(ctx context.Context) (*[]entities.Product, error) {
+	var product *[]entities.Product
+	res := db.connection.WithContext(ctx).Preload("Categories").Order("are_buyed desc").Find(&product)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return product, nil
 }
 
 func (db *productConnection) LimitProduct(ctx context.Context, limit int) (*[]entities.Product, error) {

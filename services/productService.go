@@ -3,19 +3,16 @@ package services
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/aldisaputra17/dapur-fresh-id/entities"
 	"github.com/aldisaputra17/dapur-fresh-id/helpers"
 	"github.com/aldisaputra17/dapur-fresh-id/repositories"
-	"github.com/aldisaputra17/dapur-fresh-id/request"
 	"github.com/gin-gonic/gin"
-	"github.com/mashingan/smapping"
 )
 
 type ProductService interface {
-	FindAllProduct(ctx context.Context) ([]*entities.Product, error)
+	FindAllProduct(ctx context.Context) (*[]entities.Product, error)
 	FindProductById(ctx context.Context, productId string) (*entities.Product, error)
 	FindProductByCategory(ctx context.Context, categoryId string) (*[]entities.Product, error)
 	FindProductByNameEqual(ctx context.Context, name string) (*entities.Product, error)
@@ -23,7 +20,7 @@ type ProductService interface {
 	FindProductByNameLike(ctx context.Context, name string) (*entities.Product, error)
 	LimitProduct(ctx context.Context, limit int) (*[]entities.Product, error)
 	PaginantionProduct(ctx *gin.Context, paginat *entities.Pagination) (helpers.Response, error)
-	CheckOutProduct(ctx context.Context, product request.RequestCheckoutProduct) entities.Product
+	PopularProduct(ctx context.Context) (*[]entities.Product, error)
 }
 
 type productService struct {
@@ -38,7 +35,7 @@ func NewProductService(productRepo repositories.ProductRepository, time time.Dur
 	}
 }
 
-func (service *productService) FindAllProduct(ctx context.Context) ([]*entities.Product, error) {
+func (service *productService) FindAllProduct(ctx context.Context) (*[]entities.Product, error) {
 	res, err := service.productRepository.FindAllProduct(ctx)
 	if err != nil {
 		return nil, err
@@ -85,14 +82,12 @@ func (service *productService) FindProductByNameLike(ctx context.Context, name s
 	return res, nil
 }
 
-func (service *productService) CheckOutProduct(ctx context.Context, product request.RequestCheckoutProduct) entities.Product {
-	productCheckout := entities.Product{}
-	err := smapping.FillStruct(&productCheckout, smapping.MapFields(&product))
+func (service *productService) PopularProduct(ctx context.Context) (*[]entities.Product, error) {
+	res, err := service.productRepository.PopularProduct(ctx)
 	if err != nil {
-		log.Fatalf("Failed map %v:", err)
+		return nil, err
 	}
-	updatedUser := service.productRepository.CheckOutProduct(ctx, productCheckout)
-	return updatedUser
+	return res, nil
 }
 
 func (service *productService) LimitProduct(ctx context.Context, limit int) (*[]entities.Product, error) {

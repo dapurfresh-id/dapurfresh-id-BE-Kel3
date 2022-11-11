@@ -19,7 +19,7 @@ type ProductController interface {
 	GetProductByNameLike(ctx *gin.Context)
 	GetLimitProduct(ctx *gin.Context)
 	PaginationProduct(ctx *gin.Context)
-	UpdateCheckOutProduct(ctx *gin.Context)
+	GetPopularProduct(ctx *gin.Context)
 }
 
 type productController struct {
@@ -111,17 +111,18 @@ func (c *productController) GetProductByNameLike(ctx *gin.Context) {
 	}
 }
 
-func (c *productController) UpdateCheckOutProduct(ctx *gin.Context) {
-	var userReqUpdate request.RequestCheckoutProduct
-	errObj := ctx.ShouldBind(&userReqUpdate)
-	if errObj != nil {
-		res := helpers.BuildErrorResponse("Failed to process request", errObj.Error(), helpers.EmptyObj{})
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+func (c *productController) GetPopularProduct(ctx *gin.Context) {
+	var reqProduct request.RequestProduct
+	errObj := ctx.ShouldBind(&reqProduct)
+	readedProduct, err := c.productService.PopularProduct(ctx)
+	if err != nil {
+		response := helpers.BuildErrorResponse("Failed to readed", errObj.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
+	} else {
+		response := helpers.BuildResponse(true, "Readed!", readedProduct)
+		ctx.JSON(http.StatusOK, response)
 	}
-	u := c.productService.CheckOutProduct(ctx, userReqUpdate)
-	res := helpers.BuildResponse(true, "OK!", u)
-	ctx.JSON(http.StatusOK, res)
 }
 
 func (c *productController) GetLimitProduct(ctx *gin.Context) {

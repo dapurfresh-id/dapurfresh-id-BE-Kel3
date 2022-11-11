@@ -51,7 +51,7 @@ func main() {
 			nameProductRoutes.GET("contains", productController.GetProductByNameContains)
 			nameProductRoutes.GET("like", productController.GetProductByNameLike)
 		}
-		productRoutes.PUT("/checkout/:id", productController.UpdateCheckOutProduct)
+		productRoutes.GET("/popular", productController.GetPopularProduct)
 	}
 	categoryRoutes := r.Group("/category")
 	{
