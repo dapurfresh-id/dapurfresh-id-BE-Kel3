@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/aldisaputra17/dapur-fresh-id/helpers"
@@ -9,6 +10,7 @@ import (
 	"github.com/aldisaputra17/dapur-fresh-id/services"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type UserController interface {
@@ -28,15 +30,15 @@ func NewUserController(userServ services.UserService, jwtServ services.JWTServic
 }
 
 func (c *userController) Update(ctx *gin.Context) {
-	var reqUser request.RequestUserUpdate
-	errObj := ctx.ShouldBind(&reqUser)
+	var reqUser *request.RequestUserUpdate
+	errObj := ctx.ShouldBindJSON(&reqUser)
 	if errObj != nil {
 		res := helpers.BuildErrorResponse("Failed to process request", errObj.Error(), helpers.EmptyObj{})
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
 	fileHeader, err := ctx.FormFile("image")
-	file, _ := fileHeader.Open()
+	log.Println(fileHeader)
 	if err != nil {
 		res := helpers.BuildErrorResponse("Failed to process request", err.Error(), helpers.EmptyObj{})
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
@@ -49,13 +51,14 @@ func (c *userController) Update(ctx *gin.Context) {
 	}
 	claims := token.Claims.(jwt.MapClaims)
 	id := fmt.Sprintf("%v", claims["user_id"])
-	reqUser.ID = id
-	result, err := c.userService.Update(ctx, &reqUser, file)
+	reqUser.ID = uuid.Must(uuid.Parse(id))
+	reqUser.Image = fileHeader
+	result, img, err := c.userService.Update(ctx, reqUser)
 	if err != nil {
-		res := helpers.BuildErrorResponse("Failed to created cart", err.Error(), helpers.EmptyObj{})
+		res := helpers.BuildErrorResponse("Failed to update user", err.Error(), helpers.EmptyObj{})
 		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
-	response := helpers.BuildResponse(true, "Updated!", result)
+	response := helpers.BuildSuccessUpdate(true, "Updated!", result, map[string]interface{}{"img": img})
 	ctx.JSON(http.StatusCreated, response)
 }

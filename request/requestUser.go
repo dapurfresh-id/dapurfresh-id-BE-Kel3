@@ -1,12 +1,16 @@
 package request
 
-import "mime/multipart"
+import (
+	"mime/multipart"
+
+	"github.com/google/uuid"
+)
 
 type RequestUserUpdate struct {
-	ID       string                `json:"-" form:"id,omitempty" `
-	Username string                `json:"username" form:"username"`
-	Name     string                `json:"name" form:"name" `
-	Phone    string                `json:"phone" form:"phone" `
-	Password string                `json:"password,omitempty" form:"password,omitempty" `
-	Image    *multipart.FileHeader `json:"image" form:"image"`
+	ID       uuid.UUID             `json:"-" form:"id,omitempty"`
+	Username string                `json:"username" form:"username" bind:"required"`
+	Name     string                `json:"name" form:"name" bind:"required"`
+	Phone    string                `json:"phone" form:"phone" bind:"required"`
+	Password string                `json:"password,omitempty" form:"password,omitempty" bind:"required" `
+	Image    *multipart.FileHeader `json:"image,omitempty" validate:"required" form:"image" bind:"required"`
 }

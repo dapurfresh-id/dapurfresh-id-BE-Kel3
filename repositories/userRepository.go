@@ -5,14 +5,17 @@ import (
 	"log"
 
 	"github.com/aldisaputra17/dapur-fresh-id/entities"
+	"github.com/aldisaputra17/dapur-fresh-id/helpers"
+	"github.com/aldisaputra17/dapur-fresh-id/request"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type UserRepository interface {
 	Create(ctx context.Context, user *entities.User) (*entities.User, error)
-	Update(ctx context.Context, user *entities.User, img string) (*entities.User, error)
+	Update(ctx context.Context, user *entities.User, req *request.RequestUserUpdate) (*entities.User, string, error)
 	FindById(ctx context.Context, id string) ([]*entities.User, error)
+	// Image(user *entities.User) (string, error)
 	VerifyCredential(username string, password string) interface{}
 	IsDuplicateEmail(username string) (tx *gorm.DB)
 }
@@ -36,7 +39,7 @@ func (db *userConnection) Create(ctx context.Context, user *entities.User) (*ent
 	return user, nil
 }
 
-func (db *userConnection) Update(ctx context.Context, user *entities.User, img string) (*entities.User, error) {
+func (db *userConnection) Update(ctx context.Context, user *entities.User, req *request.RequestUserUpdate) (*entities.User, string, error) {
 	if user.Password != "" {
 		user.Password = hashAndSalt([]byte(user.Password))
 	} else {
@@ -45,11 +48,16 @@ func (db *userConnection) Update(ctx context.Context, user *entities.User, img s
 		user.Password = tempUser.Password
 	}
 
-	res := db.connection.WithContext(ctx).Save(&user)
-	if res.Error != nil {
-		return nil, res.Error
+	upload, err := helpers.ImageUploadHelper(req.Image)
+	if err != nil {
+		return nil, "", err
 	}
-	return user, nil
+
+	res := db.connection.WithContext(ctx).Joins("Image").Save(&user)
+	if res.Error != nil {
+		return nil, "", res.Error
+	}
+	return user, upload, nil
 }
 
 func (db *userConnection) VerifyCredential(username string, password string) interface{} {
@@ -74,6 +82,19 @@ func (db *userConnection) FindById(ctx context.Context, id string) ([]*entities.
 	}
 	return user, nil
 }
+
+// func (db *userConnection) Image(user *entities.User) (string, error) {
+// 	upload, err := helpers.ImageUploadHelper(user.Image)
+// 	if err != nil {
+// 		return "", err
+// 	}
+
+// 	res := db.connection.Create(&user)
+// 	if res.Error != nil {
+// 		return "", res.Error
+// 	}
+// 	return upload, nil
+// }
 
 func hashAndSalt(pwd []byte) string {
 	hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)
