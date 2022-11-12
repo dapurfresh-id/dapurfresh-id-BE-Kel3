@@ -14,6 +14,8 @@ import (
 
 type CartController interface {
 	AddCart(ctx *gin.Context)
+	GetCount(ctx *gin.Context)
+	GetCarts(ctx *gin.Context)
 }
 
 type cartController struct {
@@ -39,7 +41,7 @@ func (c *cartController) AddCart(ctx *gin.Context) {
 		authHeader := ctx.GetHeader("Authorization")
 		userID := c.getUserIDByToken(authHeader)
 		reqCart.UserID = userID
-		fmt.Println("product:", reqCart)
+		fmt.Println("cart:", reqCart)
 		result, err := c.cartService.AddCart(ctx, &reqCart)
 		if err != nil {
 			res := helpers.BuildErrorResponse("Failed to created cart", err.Error(), helpers.EmptyObj{})
@@ -49,6 +51,41 @@ func (c *cartController) AddCart(ctx *gin.Context) {
 		response := helpers.BuildResponse(true, "Created!", result)
 		ctx.JSON(http.StatusCreated, response)
 	}
+}
+
+func (c *cartController) GetCount(ctx *gin.Context) {
+	userID := ctx.Param("user_id")
+	counts := 0
+	getCart, err := c.cartService.GetCount(ctx, userID, int64(counts))
+	if err != nil {
+		res := helpers.BuildErrorResponse("Data not found", "No data with given cart_id", helpers.EmptyObj{})
+		ctx.JSON(http.StatusNotFound, res)
+		return
+	} else {
+		response := helpers.BuildResponse(true, "Ok", getCart)
+		ctx.JSON(http.StatusOK, response)
+	}
+}
+
+func (c *cartController) GetCarts(ctx *gin.Context) {
+	authHeader := ctx.GetHeader("Authorization")
+	token, errToken := c.jwtService.ValidateToken(authHeader)
+	if errToken != nil {
+		panic(errToken.Error())
+	}
+	claims := token.Claims.(jwt.MapClaims)
+	userID := fmt.Sprintf("%v", claims["user_id"])
+	list, err := c.cartService.GetCarts(ctx, userID)
+	total := c.cartService.GetTotalCartValue(list)
+	var counts int64
+	count, _ := c.cartService.GetCount(ctx, userID, counts)
+	if err != nil {
+		res := helpers.BuildErrorResponse("Fail fetch list carts", err.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+	res := helpers.BuildSuccessAddCart(true, "Ok", list, total, count)
+	ctx.JSON(http.StatusOK, res)
 }
 
 func (c *cartController) getUserIDByToken(token string) string {

@@ -9,6 +9,7 @@ import (
 
 type ProductRepository interface {
 	GetProducts(ctx context.Context, id string) ([]*entities.Product, error)
+	Create(ctx context.Context, product *entities.Product) (*entities.Product, error)
 }
 
 type productConnection struct {
@@ -28,4 +29,12 @@ func (db *productConnection) GetProducts(ctx context.Context, id string) ([]*ent
 		return nil, res.Error
 	}
 	return products, nil
+}
+
+func (db *productConnection) Create(ctx context.Context, product *entities.Product) (*entities.Product, error) {
+	res := db.connection.WithContext(ctx).Create(&product)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return product, nil
 }

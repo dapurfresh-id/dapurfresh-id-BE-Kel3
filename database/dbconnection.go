@@ -33,7 +33,7 @@ func ConnectDB() *gorm.DB {
 	if err != nil {
 		panic("Failed to create a connection to database")
 	}
-	db.AutoMigrate(&entities.User{}, &entities.Product{}, &entities.Category{}, &entities.Cart{}, &entities.Order{})
+	db.AutoMigrate(&entities.User{}, &entities.Product{}, &entities.Category{}, &entities.Cart{}, &entities.Order{}, &entities.Image{})
 	return db
 }
 
