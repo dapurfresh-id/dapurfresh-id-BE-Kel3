@@ -23,7 +23,6 @@ var (
 	categoryRepository repositories.CategoryRepository = repositories.NewCategoryRepository(db)
 	cartRepository     repositories.CartRepository     = repositories.NewCartRepository(db)
 	productRepository  repositories.ProductRepository  = repositories.NewProductRepository(db)
-	orderRepository    repositories.OrderRepository    = repositories.NewOrderRepository(db)
 	authService        services.AuthService            = services.NewAuthService(userRepository, contextTimeOut)
 	jwtService         services.JWTService             = services.NewJWTService()
 	categoryService    services.CategoryService        = services.NewCategoryService(categoryRepository, contextTimeOut)
@@ -31,14 +30,12 @@ var (
 	userService        services.UserService            = services.NewUserService(userRepository, contextTimeOut)
 	productService     services.ProductService         = services.NewProductService(productRepository, contextTimeOut)
 	imgService         services.ImageService           = services.NewImage()
-	orderService       services.OrderService           = services.NewOrderService(orderRepository, contextTimeOut)
 	authController     controllers.AuthController      = controllers.NewAuthController(authService, jwtService)
 	categoryController controllers.CategoryController  = controllers.NewCategoryController(categoryService)
 	cartController     controllers.CartController      = controllers.NewCartController(cartService, jwtService)
 	userController     controllers.UserController      = controllers.NewUserController(userService, jwtService)
 	productController  controllers.ProductController   = controllers.NewProductController(productService)
 	imgController      controllers.ImageController     = controllers.NewImgController(imgService, db)
-	orderController    controllers.OrderController     = controllers.NewOrderController(orderService, jwtService)
 )
 
 func main() {
@@ -82,10 +79,6 @@ func main() {
 	imgRoutes := api.Group("img")
 	{
 		imgRoutes.POST("", imgController.Create)
-	}
-	orderRoutes := api.Group("checkout")
-	{
-		orderRoutes.POST("", orderController.Create)
 	}
 	// seeder.DBSeed(db)
 	r.Run()
