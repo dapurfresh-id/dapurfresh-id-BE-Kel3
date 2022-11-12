@@ -6,6 +6,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 
+	"github.com/aldisaputra17/dapur-fresh-id/entities"
 	"github.com/aldisaputra17/dapur-fresh-id/helpers"
 	"github.com/aldisaputra17/dapur-fresh-id/request"
 	"github.com/aldisaputra17/dapur-fresh-id/services"
@@ -14,8 +15,9 @@ import (
 
 type CartController interface {
 	AddCart(ctx *gin.Context)
-	GetCount(ctx *gin.Context)
 	GetCarts(ctx *gin.Context)
+	Delete(ctx *gin.Context)
+	Update(ctx *gin.Context)
 }
 
 type cartController struct {
@@ -53,20 +55,6 @@ func (c *cartController) AddCart(ctx *gin.Context) {
 	}
 }
 
-func (c *cartController) GetCount(ctx *gin.Context) {
-	userID := ctx.Param("user_id")
-	counts := 0
-	getCart, err := c.cartService.GetCount(ctx, userID, int64(counts))
-	if err != nil {
-		res := helpers.BuildErrorResponse("Data not found", "No data with given cart_id", helpers.EmptyObj{})
-		ctx.JSON(http.StatusNotFound, res)
-		return
-	} else {
-		response := helpers.BuildResponse(true, "Ok", getCart)
-		ctx.JSON(http.StatusOK, response)
-	}
-}
-
 func (c *cartController) GetCarts(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
 	token, errToken := c.jwtService.ValidateToken(authHeader)
@@ -77,6 +65,7 @@ func (c *cartController) GetCarts(ctx *gin.Context) {
 	userID := fmt.Sprintf("%v", claims["user_id"])
 	list, err := c.cartService.GetCarts(ctx, userID)
 	total := c.cartService.GetTotalCartValue(list)
+	fmt.Println("carts", list)
 	var counts int64
 	count, _ := c.cartService.GetCount(ctx, userID, counts)
 	if err != nil {
@@ -86,6 +75,60 @@ func (c *cartController) GetCarts(ctx *gin.Context) {
 	}
 	res := helpers.BuildSuccessAddCart(true, "Ok", list, total, count)
 	ctx.JSON(http.StatusOK, res)
+}
+
+func (c *cartController) Delete(ctx *gin.Context) {
+	var cart *entities.Cart
+	id := ctx.Param("id")
+	authHeader := ctx.GetHeader("Authorization")
+	token, errTkn := c.jwtService.ValidateToken(authHeader)
+	if errTkn != nil {
+		panic(errTkn)
+	}
+	claims := token.Claims.(jwt.MapClaims)
+	userID := fmt.Sprintf("%v", claims["user_id"])
+	cartID := fmt.Sprintf("%v", cart.ID)
+	if c.cartService.IsAllowedToEdit(ctx, userID, cartID) {
+		err := c.cartService.Delete(ctx, ca)
+		if err != nil {
+			res := helpers.BuildErrorResponse("Failed deleted cart check your permissons", err.Error(), helpers.EmptyObj{})
+			ctx.JSON(http.StatusBadRequest, res)
+		}
+		response := helpers.BuildResponse(true, "Deleted", helpers.EmptyObj{})
+		ctx.JSON(http.StatusOK, response)
+	} else {
+		responses := helpers.BuildErrorResponse("You dont have permission", "You are not the owner", helpers.EmptyObj{})
+		ctx.JSON(http.StatusForbidden, responses)
+	}
+}
+
+func (c *cartController) Update(ctx *gin.Context) {
+	var req *request.RequestCartUpdate
+	errObj := ctx.BindJSON(&req)
+	if errObj != nil {
+		res := helpers.BuildErrorResponse("failed process cart", errObj.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+	authHeader := ctx.GetHeader("Authorization")
+	token, errTkn := c.jwtService.ValidateToken(authHeader)
+	if errTkn != nil {
+		panic(errTkn)
+	}
+	claims := token.Claims.(jwt.MapClaims)
+	userID := fmt.Sprintf("%v", claims["user_id"])
+	cartID := fmt.Sprintf("%v", req.ID)
+	if c.cartService.IsAllowedToEdit(ctx, userID, cartID) {
+		req.UserID = userID
+	}
+	result, err := c.cartService.Update(ctx, req)
+	if err != nil {
+		res := helpers.BuildErrorResponse("Failed updated cart check your permissons", err.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+	response := helpers.BuildResponse(true, "Updated", result)
+	ctx.JSON(http.StatusOK, response)
 }
 
 func (c *cartController) getUserIDByToken(token string) string {

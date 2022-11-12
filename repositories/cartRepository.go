@@ -13,9 +13,12 @@ type CartRepository interface {
 	AddCart(ctx context.Context, cart *entities.Cart) (*entities.Cart, error)
 	GetProdIdAndUserId(ctx context.Context, userID string, productID string) ([]*entities.Cart, error)
 	GetCount(ctx context.Context, userID string, count int64) (int64, error)
-	GetCart(ctx context.Context, id string) ([]*entities.Cart, error)
+	GetCarts(ctx context.Context, userID string) ([]*entities.Cart, error)
 	CovertDetailCartMap(ctx context.Context, userID string) (map[string](*entities.Cart), error)
 	Update(ctx context.Context, cart *entities.Cart) (*entities.Cart, error)
+	UpdateDetailCart(ctx context.Context, cart *entities.Cart) (*entities.Cart, error)
+	Delete(ctx context.Context, cart *entities.Cart) error
+	FindById(ctx context.Context, id string) (*entities.Cart, error)
 }
 
 type cartConnection struct {
@@ -74,6 +77,7 @@ func (db *cartConnection) AddCart(ctx context.Context, cart *entities.Cart) (*en
 }
 
 func (db *cartConnection) GetCount(ctx context.Context, userID string, count int64) (int64, error) {
+	// var carts []*entities.Cart
 	res := db.connection.WithContext(ctx).Model(&entities.Cart{}).Where("user_id = ?", userID).Count(&count)
 	if res.Error != nil {
 		return 0, res.Error
@@ -81,10 +85,9 @@ func (db *cartConnection) GetCount(ctx context.Context, userID string, count int
 	return count, nil
 }
 
-func (db *cartConnection) GetCart(ctx context.Context, id string) ([]*entities.Cart, error) {
+func (db *cartConnection) GetCarts(ctx context.Context, userID string) ([]*entities.Cart, error) {
 	var carts []*entities.Cart
-	var count int64
-	res := db.connection.WithContext(ctx).Where("id = ?", id).Find(&carts).Count(&count)
+	res := db.connection.WithContext(ctx).Where("user_id = ?", userID).Preload("Products").Preload("User").Find(&carts)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -92,7 +95,7 @@ func (db *cartConnection) GetCart(ctx context.Context, id string) ([]*entities.C
 }
 
 func (db *cartConnection) CovertDetailCartMap(ctx context.Context, userID string) (map[string](*entities.Cart), error) {
-	cartList, err := db.GetCart(ctx, userID)
+	cartList, err := db.GetCarts(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +108,58 @@ func (db *cartConnection) CovertDetailCartMap(ctx context.Context, userID string
 }
 
 func (db *cartConnection) Update(ctx context.Context, cart *entities.Cart) (*entities.Cart, error) {
-	res := db.connection.WithContext(ctx).Where("sub_total = ? and user_id = ?", cart.SubTotal, cart.UserID).Updates(&cart)
+	query := `UPDATE carts set sub_total = ? WHERE id = ?`
+	stmt, err := db.connection.ConnPool.PrepareContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	res, err := stmt.ExecContext(ctx, cart.SubTotal, cart.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	rowAffected, err := res.RowsAffected()
+	if err != nil {
+		return nil, err
+	}
+
+	if rowAffected != 1 {
+		err = fmt.Errorf("Weird  Behaviour. Total Affected: %d", rowAffected)
+		return nil, err
+	}
+	return cart, nil
+}
+
+func (db *cartConnection) Delete(ctx context.Context, cart *entities.Cart) error {
+	res := db.connection.WithContext(ctx).Delete(&cart)
+	if res.Error != nil {
+		return nil
+	}
+	return nil
+}
+
+func (db *cartConnection) UpdateDetailCart(ctx context.Context, cart *entities.Cart) (*entities.Cart, error) {
+	cartID := fmt.Sprintf("%v", cart.ID)
+	cartItems, err := db.FindById(ctx, cartID)
+	if err != nil {
+		return nil, err
+	}
+
+	cart.SubTotal = cartItems.Price * cart.Quantity
+
+	res := db.connection.WithContext(ctx).Model(&cart).Updates(entities.Cart{
+		Quantity: cart.Quantity, SubTotal: cart.SubTotal})
+	db.connection.Preload("Products").Find(&cart)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	cart.SubTotal = cart.Price * cart.Quantity
+	return cart, nil
+}
+
+func (db *cartConnection) FindById(ctx context.Context, id string) (*entities.Cart, error) {
+	var cart *entities.Cart
+	res := db.connection.WithContext(ctx).Where("id = ?", id).Find(&cart)
 	if res.Error != nil {
 		return nil, res.Error
 	}
