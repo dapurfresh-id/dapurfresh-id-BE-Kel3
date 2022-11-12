@@ -89,7 +89,7 @@ func (c *cartController) Delete(ctx *gin.Context) {
 	userID := fmt.Sprintf("%v", claims["user_id"])
 	cartID := fmt.Sprintf("%v", cart.ID)
 	if c.cartService.IsAllowedToEdit(ctx, userID, cartID) {
-		err := c.cartService.Delete(ctx, ca)
+		err := c.cartService.Delete(ctx, id)
 		if err != nil {
 			res := helpers.BuildErrorResponse("Failed deleted cart check your permissons", err.Error(), helpers.EmptyObj{})
 			ctx.JSON(http.StatusBadRequest, res)
