@@ -6,7 +6,6 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 
-	"github.com/aldisaputra17/dapur-fresh-id/entities"
 	"github.com/aldisaputra17/dapur-fresh-id/helpers"
 	"github.com/aldisaputra17/dapur-fresh-id/request"
 	"github.com/aldisaputra17/dapur-fresh-id/services"
@@ -78,28 +77,21 @@ func (c *cartController) GetCarts(ctx *gin.Context) {
 }
 
 func (c *cartController) Delete(ctx *gin.Context) {
-	var cart *entities.Cart
+
 	id := ctx.Param("id")
 	authHeader := ctx.GetHeader("Authorization")
-	token, errTkn := c.jwtService.ValidateToken(authHeader)
+	_, errTkn := c.jwtService.ValidateToken(authHeader)
 	if errTkn != nil {
 		panic(errTkn)
 	}
-	claims := token.Claims.(jwt.MapClaims)
-	userID := fmt.Sprintf("%v", claims["user_id"])
-	cartID := fmt.Sprintf("%v", cart.ID)
-	if c.cartService.IsAllowedToEdit(ctx, userID, cartID) {
-		err := c.cartService.Delete(ctx, id)
-		if err != nil {
-			res := helpers.BuildErrorResponse("Failed deleted cart check your permissons", err.Error(), helpers.EmptyObj{})
-			ctx.JSON(http.StatusBadRequest, res)
-		}
-		response := helpers.BuildResponse(true, "Deleted", helpers.EmptyObj{})
-		ctx.JSON(http.StatusOK, response)
-	} else {
-		responses := helpers.BuildErrorResponse("You dont have permission", "You are not the owner", helpers.EmptyObj{})
-		ctx.JSON(http.StatusForbidden, responses)
+	err := c.cartService.Delete(ctx, id)
+	if err != nil {
+		res := helpers.BuildErrorResponse("Fail deleted carts", err.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
 	}
+	res := helpers.BuildResponse(true, "Ok", helpers.EmptyObj{})
+	ctx.JSON(http.StatusOK, res)
 }
 
 func (c *cartController) Update(ctx *gin.Context) {
