@@ -91,12 +91,22 @@ func (c *orderController) GetDetail(ctx *gin.Context) {
 }
 
 func (c *orderController) PatchStatus(ctx *gin.Context) {
+	var req *request.RequestPatchOrder
+	errObj := ctx.BindJSON(&req)
+	if errObj != nil {
+		res := helpers.BuildErrorResponse("failed process cart", errObj.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
 	authHeader := ctx.GetHeader("Authorization")
-	_, errTkn := c.jwtService.ValidateToken(authHeader)
+	token, errTkn := c.jwtService.ValidateToken(authHeader)
 	if errTkn != nil {
 		panic(errTkn.Error())
 	}
-	result, err := c.orderService.PatchStatus(ctx)
+	claims := token.Claims.(jwt.MapClaims)
+	userID := fmt.Sprintf("%v", claims["user_id"])
+	req.UserID = userID
+	result, err := c.orderService.PatchStatus(ctx, req)
 	if err != nil {
 		res := helpers.BuildErrorResponse("Failed to patch order", err.Error(), helpers.EmptyObj{})
 		ctx.JSON(http.StatusBadRequest, res)

@@ -15,7 +15,7 @@ type OrderService interface {
 	Create(ctx context.Context, req *request.RequestOrderCreate) (*entities.Order, error)
 	GetOrder(ctx context.Context, userID string) ([]*entities.Order, error)
 	GetDetail(ctx context.Context, id string) (*entities.Order, error)
-	PatchStatus(ctx context.Context) (*entities.Order, error)
+	PatchStatus(ctx context.Context, req *request.RequestPatchOrder) (*entities.Order, error)
 }
 
 type orderService struct {
@@ -78,12 +78,16 @@ func (service *orderService) GetDetail(ctx context.Context, id string) (*entitie
 	return res, nil
 }
 
-func (service *orderService) PatchStatus(ctx context.Context) (*entities.Order, error) {
-	res, err := service.orderRepo.PatchStatus(ctx)
-	if err != nil {
-		return nil, err
+func (service *orderService) PatchStatus(ctx context.Context, req *request.RequestPatchOrder) (*entities.Order, error) {
+	orderUpdate := &entities.Order{
+		ID:     req.ID,
+		Status: "cancel",
 	}
 	ctx, cancel := context.WithTimeout(ctx, service.contexTimeOut)
 	defer cancel()
+	res, err := service.orderRepo.PatchStatus(ctx, orderUpdate)
+	if err != nil {
+		return nil, err
+	}
 	return res, nil
 }
