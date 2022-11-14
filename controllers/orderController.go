@@ -13,6 +13,9 @@ import (
 
 type OrderController interface {
 	Create(ctx *gin.Context)
+	GetOrder(ctx *gin.Context)
+	GetDetail(ctx *gin.Context)
+	PatchStatus(ctx *gin.Context)
 }
 
 type orderController struct {
@@ -50,6 +53,57 @@ func (c *orderController) Create(ctx *gin.Context) {
 		ctx.JSON(http.StatusCreated, response)
 	}
 
+}
+
+func (c *orderController) GetOrder(ctx *gin.Context) {
+	authHeader := ctx.GetHeader("Authorization")
+	token, errTkn := c.jwtService.ValidateToken(authHeader)
+	if errTkn != nil {
+		panic(errTkn.Error())
+	}
+	claims := token.Claims.(jwt.MapClaims)
+	userID := fmt.Sprintf("%v", claims["user_id"])
+	list, err := c.orderService.GetOrder(ctx, userID)
+	if err != nil {
+		res := helpers.BuildErrorResponse("Failed to list order", err.Error(), helpers.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := helpers.BuildResponse(true, "Ok", list)
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (c *orderController) GetDetail(ctx *gin.Context) {
+	id := ctx.Param("id")
+	authHeader := ctx.GetHeader("Authorization")
+	_, errTkn := c.jwtService.ValidateToken(authHeader)
+	if errTkn != nil {
+		panic(errTkn.Error())
+	}
+	list, err := c.orderService.GetDetail(ctx, id)
+	if err != nil {
+		res := helpers.BuildErrorResponse("Failed to list detail order", err.Error(), helpers.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := helpers.BuildResponse(true, "Ok", list)
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (c *orderController) PatchStatus(ctx *gin.Context) {
+	authHeader := ctx.GetHeader("Authorization")
+	_, errTkn := c.jwtService.ValidateToken(authHeader)
+	if errTkn != nil {
+		panic(errTkn.Error())
+	}
+	result, err := c.orderService.PatchStatus(ctx)
+	if err != nil {
+		res := helpers.BuildErrorResponse("Failed to patch order", err.Error(), helpers.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := helpers.BuildResponse(true, "Ok", result)
+	ctx.JSON(http.StatusOK, res)
 }
 
 func (c *orderController) getUserIDByToken(token string) string {

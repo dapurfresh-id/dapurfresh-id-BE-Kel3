@@ -79,13 +79,16 @@ func main() {
 	{
 		prodRoutes.POST("", productController.Create)
 	}
-	imgRoutes := api.Group("img")
+	imgRoutes := api.Group("/img")
 	{
 		imgRoutes.POST("", imgController.Create)
 	}
-	orderRoutes := api.Group("checkout")
+	orderRoutes := api.Group("/checkout", middleware.AuthorizeJWT(jwtService))
 	{
 		orderRoutes.POST("", orderController.Create)
+		orderRoutes.GET("", orderController.GetOrder)
+		orderRoutes.GET("/:id", orderController.GetDetail)
+		orderRoutes.PATCH("", orderController.PatchStatus)
 	}
 	// seeder.DBSeed(db)
 	r.Run()
