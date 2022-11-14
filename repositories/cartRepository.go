@@ -12,12 +12,14 @@ import (
 type CartRepository interface {
 	AddCart(ctx context.Context, cart *entities.Cart) (*entities.Cart, error)
 	GetProdIdAndUserId(ctx context.Context, userID string, productID string) ([]*entities.Cart, error)
-	GetCount(ctx context.Context, userID string, count int64) (int64, error)
 	GetCarts(ctx context.Context, userID string) ([]*entities.Cart, error)
+	GetCartByid(ctx context.Context, id string) ([]*entities.Cart, error)
+	GetCount(ctx context.Context, userID string, count int64) (int64, error)
 	CovertDetailCartMap(ctx context.Context, userID string) (map[string](*entities.Cart), error)
 	Update(ctx context.Context, cart *entities.Cart) (*entities.Cart, error)
 	UpdateDetailCart(ctx context.Context, cart *entities.Cart) (*entities.Cart, error)
 	Delete(ctx context.Context, id string) error
+	Trancate(ctx context.Context, userID string) error
 	FindById(ctx context.Context, id string) (*entities.Cart, error)
 }
 
@@ -74,15 +76,6 @@ func (db *cartConnection) AddCart(ctx context.Context, cart *entities.Cart) (*en
 		return nil, err
 	}
 	return cart, nil
-}
-
-func (db *cartConnection) GetCount(ctx context.Context, userID string, count int64) (int64, error) {
-	// var carts []*entities.Cart
-	res := db.connection.WithContext(ctx).Model(&entities.Cart{}).Where("user_id = ?", userID).Count(&count)
-	if res.Error != nil {
-		return 0, res.Error
-	}
-	return count, nil
 }
 
 func (db *cartConnection) GetCarts(ctx context.Context, userID string) ([]*entities.Cart, error) {
@@ -160,9 +153,35 @@ func (db *cartConnection) UpdateDetailCart(ctx context.Context, cart *entities.C
 
 func (db *cartConnection) FindById(ctx context.Context, id string) (*entities.Cart, error) {
 	var cart *entities.Cart
-	res := db.connection.WithContext(ctx).Where("id = ?", id).Find(&cart)
+	res := db.connection.WithContext(ctx).Where("id = ?", id).Preload("Products").Find(&cart)
 	if res.Error != nil {
 		return nil, res.Error
 	}
 	return cart, nil
+}
+
+func (db *cartConnection) Trancate(ctx context.Context, userID string) error {
+	var cart *entities.Cart
+	res := db.connection.WithContext(ctx).Where("user_id = ?", userID).Delete(&cart)
+	if res.Error != nil {
+		return res.Error
+	}
+	return nil
+}
+
+func (db *cartConnection) GetCartByid(ctx context.Context, id string) ([]*entities.Cart, error) {
+	var carts []*entities.Cart
+	res := db.connection.WithContext(ctx).Where("id = ?", id).Find(&carts)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return carts, nil
+}
+
+func (db *cartConnection) GetCount(ctx context.Context, userID string, count int64) (int64, error) {
+	res := db.connection.WithContext(ctx).Model(&entities.Cart{}).Where("user_id = ?", userID).Count(&count)
+	if res.Error != nil {
+		return 0, res.Error
+	}
+	return count, nil
 }
