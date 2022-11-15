@@ -1,17 +1,11 @@
 package request
 
-import (
-	"mime/multipart"
-
-	"github.com/google/uuid"
-)
-
-type ReqeustCreateProduct struct {
-	ID         uuid.UUID             `json:"-" form:"id,omitempty" `
-	Name       string                `json:"name" validate:"required" form:"name" bind:"required"`
-	Price      int                   `json:"price" validate:"required" form:"price" bind:"required"`
-	Unit       int                   `json:"unit" validate:"required" form:"unit" bind:"required"`
-	UnitType   string                `json:"unit_type" validate:"required" form:"unit_type" bind:"required"`
-	Image      *multipart.FileHeader `json:"image,omitempty" validate:"required" form:"image" binding:"required"`
-	CategoryID string                `json:"category_id" validate:"required" form:"category_id" bind:"required"`
+type RequestProduct struct {
+	Name       string `json:"name" form:"name" binding:"required"`
+	Price      int    `json:"price" form:"price" binding:"required"`
+	Unit       int    `json:"unit" form:"unit" binding:"required"`
+	UnitType   string `json:"unittype" form:"unittype" binding:"required"`
+	Image      string `json:"image" form:"image" binding:"required"`
+	CategoryID string `json:"categoryid" form:"categoryid" binding:"required"`
+	AreBuyed   int    `json:"arebuyed" form:"are_buyed"`
 }

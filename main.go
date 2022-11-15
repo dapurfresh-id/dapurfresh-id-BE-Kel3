@@ -30,15 +30,15 @@ var (
 	cartService        services.CartService            = services.NewCartService(cartRepository, contextTimeOut)
 	userService        services.UserService            = services.NewUserService(userRepository, contextTimeOut)
 	productService     services.ProductService         = services.NewProductService(productRepository, contextTimeOut)
-	imgService         services.ImageService           = services.NewImage()
-	orderService       services.OrderService           = services.NewOrderService(orderRepository, contextTimeOut)
-	authController     controllers.AuthController      = controllers.NewAuthController(authService, jwtService)
-	categoryController controllers.CategoryController  = controllers.NewCategoryController(categoryService)
-	cartController     controllers.CartController      = controllers.NewCartController(cartService, jwtService)
-	userController     controllers.UserController      = controllers.NewUserController(userService, jwtService)
-	productController  controllers.ProductController   = controllers.NewProductController(productService)
-	imgController      controllers.ImageController     = controllers.NewImgController(imgService, db)
-	orderController    controllers.OrderController     = controllers.NewOrderController(orderService, jwtService)
+	//imgService         services.ImageService           = services.NewImage()
+	orderService       services.OrderService          = services.NewOrderService(orderRepository, contextTimeOut)
+	authController     controllers.AuthController     = controllers.NewAuthController(authService, jwtService)
+	categoryController controllers.CategoryController = controllers.NewCategoryController(categoryService)
+	cartController     controllers.CartController     = controllers.NewCartController(cartService, jwtService)
+	userController     controllers.UserController     = controllers.NewUserController(userService, jwtService)
+	//imgController      controllers.ImageController     = controllers.NewImgController(imgService, db)
+	orderController   controllers.OrderController   = controllers.NewOrderController(orderService, jwtService)
+	productController controllers.ProductController = controllers.NewProductController(productService)
 )
 
 func main() {
@@ -59,11 +59,25 @@ func main() {
 		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/register", authController.Register)
 	}
+	productRoutes := api.Group("/product")
+	{
+		productRoutes.GET("/", productController.GetAllProduct)
+		productRoutes.GET("/:id", productController.GetProductById)
+		productRoutes.GET("/search", productController.PaginationProduct)
+		productRoutes.GET("/category", productController.GetProductByCategory)
+		productRoutes.GET("/limit", productController.GetLimitProduct)
+		nameProductRoutes := productRoutes.Group("/name")
+		{
+			nameProductRoutes.GET("equal", productController.GetProductByNameEqual)
+			nameProductRoutes.GET("contains", productController.GetProductByNameContains)
+			nameProductRoutes.GET("like", productController.GetProductByNameLike)
+		}
+		productRoutes.GET("/popular", productController.GetPopularProduct)
+	}
 	categoryRoutes := api.Group("/category")
 	{
 		categoryRoutes.GET("", categoryController.GetAllCategory)
 		categoryRoutes.GET("/:id", categoryController.GetCategoryById)
-		categoryRoutes.POST("", categoryController.CreateCategory)
 	}
 	cartRoutes := api.Group("/cart", middleware.AuthorizeJWT(jwtService))
 	{
@@ -75,14 +89,6 @@ func main() {
 	userRoutes := api.Group("/user", middleware.AuthorizeJWT(jwtService))
 	{
 		userRoutes.POST("", userController.Update)
-	}
-	prodRoutes := api.Group("/product")
-	{
-		prodRoutes.POST("", productController.Create)
-	}
-	imgRoutes := api.Group("img")
-	{
-		imgRoutes.POST("", imgController.Create)
 	}
 	orderRoutes := api.Group("/checkout", middleware.AuthorizeJWT(jwtService))
 	{

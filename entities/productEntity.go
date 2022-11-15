@@ -13,5 +13,6 @@ type Product struct {
 	// ImageID    string    `json:"image_id"`
 	Image      string   `json:"image,omitempty" form:"image" validate:"required"`
 	CategoryID string   `json:"category_id,omitempty"`
-	Categories Category `gorm:"foreignkey:CategoryID;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"category"`
+	Categories Category `gorm:"foreignkey:CategoryID;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"categories"`
+	AreBuyed   int      `gorm:"not null;default:0" json:"are_buyed"`
 }
