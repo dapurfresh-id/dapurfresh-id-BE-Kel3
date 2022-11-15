@@ -42,7 +42,6 @@ var (
 )
 
 func main() {
-	gin.SetMode(gin.ReleaseMode)
 	fmt.Println("Start Server")
 	defer database.CloseDatabaseConnection(db)
 
