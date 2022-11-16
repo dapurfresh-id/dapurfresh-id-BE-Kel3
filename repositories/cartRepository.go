@@ -71,7 +71,7 @@ func (db *cartConnection) AddCart(ctx context.Context, cart *entities.Cart) (*en
 	}
 
 	res := db.connection.WithContext(ctx).Create(&cart)
-	// db.connection.Preload("Products").Find(&cart)
+	db.connection.Preload("Products.Image").Find(&cart)
 	if res.Error != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (db *cartConnection) AddCart(ctx context.Context, cart *entities.Cart) (*en
 
 func (db *cartConnection) GetCarts(ctx context.Context, userID string) ([]*entities.Cart, error) {
 	var carts []*entities.Cart
-	res := db.connection.WithContext(ctx).Where("user_id = ?", userID).Preload("Products").Preload("User").Find(&carts)
+	res := db.connection.WithContext(ctx).Where("user_id = ?", userID).Preload("Products.Categories").Preload("Products.Image").Preload("User").Find(&carts)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -143,7 +143,7 @@ func (db *cartConnection) UpdateDetailCart(ctx context.Context, cart *entities.C
 
 	res := db.connection.WithContext(ctx).Model(&cart).Updates(entities.Cart{
 		Quantity: cart.Quantity, SubTotal: cart.SubTotal})
-	db.connection.Preload("Products").Find(&cart)
+	db.connection.Preload("Products.Categories").Find(&cart)
 	if res.Error != nil {
 		return nil, res.Error
 	}

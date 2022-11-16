@@ -5,6 +5,7 @@ import (
 )
 
 type RequestCreateCategory struct {
-	ID   uuid.UUID `json:"-" form:"id,omitempty" `
-	Name string    `json:"name" form:"name" binding:"required"`
+	ID      uuid.UUID `json:"-" form:"id,omitempty"`
+	ImageID string    `json:"image_id" form:"image_id" binding:"required"`
+	Name    string    `json:"name" form:"name" binding:"required"`
 }

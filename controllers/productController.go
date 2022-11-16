@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/aldisaputra17/dapur-fresh-id/helpers"
@@ -33,15 +32,6 @@ func (c *productController) Create(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
-	_, fileHeader, errFile := ctx.Request.FormFile("image")
-	req.Image = fileHeader
-	log.Println(fileHeader)
-	if errFile != nil {
-		res := helpers.BuildErrorResponse("failed proccess image", errFile.Error(), helpers.EmptyObj{})
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
-		return
-	}
-	req.Image = fileHeader
 	result, err := c.prodService.Create(ctx, req)
 	if err != nil {
 		res := helpers.BuildErrorResponse("failed create product", err.Error(), helpers.EmptyObj{})
@@ -54,6 +44,6 @@ func (c *productController) Create(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
-	res := helpers.BuildImageResponse(200, "Ok", map[string]interface{}{"data": result, "img": &result.Image})
+	res := helpers.BuildResponse(true, "Created", result)
 	ctx.JSON(http.StatusCreated, res)
 }

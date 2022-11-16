@@ -14,8 +14,8 @@ type Cart struct {
 	Quantity  int       `gorm:"not null" json:"quantity"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	ProductID string    `gorm:"not null" json:"product_id"`
 	Products  Product   `gorm:"foreignkey:ProductID;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"products"`
-	User      User      `gorm:"foreignkey:UserID;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"-"`
-	UserID    string    `gorm:"not null" json:"-"`
-	ProductID string    `gorm:"not null" json:"-"`
+	UserID    string    `gorm:"not null" json:"user_id"`
+	User      User      `gorm:"foreignkey:UserID;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"user"`
 }

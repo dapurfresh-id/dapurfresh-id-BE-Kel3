@@ -41,7 +41,7 @@ func (c *imgController) Create(ctx *gin.Context) {
 		return
 	}
 	upload, err := c.imgService.Create(request.ImageRequest{File: FileHead})
-	imgs.ID = uuid.New()
+	imgs.ID = uuid.New().String()
 	imgs.File = upload
 	c.db.Create(imgs)
 	if err != nil {
