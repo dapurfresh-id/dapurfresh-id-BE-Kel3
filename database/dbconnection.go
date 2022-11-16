@@ -6,15 +6,16 @@ import (
 	"time"
 
 	"github.com/aldisaputra17/dapur-fresh-id/entities"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 func ConnectDB() *gorm.DB {
-	// errEnv := godotenv.Load()
-	// if errEnv != nil {
-	// 	panic("Failed to load env file")
-	// }
+	errEnv := godotenv.Load()
+	if errEnv != nil {
+		panic("Failed to load env file")
+	}
 	dbUser := os.Getenv("DB_USER")
 	dbPass := os.Getenv("DB_PASSWORD")
 	dbHost := os.Getenv("DB_HOST")
@@ -32,7 +33,7 @@ func ConnectDB() *gorm.DB {
 	if err != nil {
 		panic("Failed to create a connection to database")
 	}
-	db.AutoMigrate(&entities.User{}, &entities.Product{}, &entities.Category{}, &entities.Cart{}, &entities.Image{})
+	db.AutoMigrate(&entities.Cart{}, &entities.Category{}, &entities.Image{}, &entities.Order{}, &entities.Product{}, &entities.User{})
 	return db
 }
 

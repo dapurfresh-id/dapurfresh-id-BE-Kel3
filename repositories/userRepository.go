@@ -5,15 +5,13 @@ import (
 	"log"
 
 	"github.com/aldisaputra17/dapur-fresh-id/entities"
-	"github.com/aldisaputra17/dapur-fresh-id/helpers"
-	"github.com/aldisaputra17/dapur-fresh-id/request"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type UserRepository interface {
 	Create(ctx context.Context, user *entities.User) (*entities.User, error)
-	Update(ctx context.Context, user *entities.User, req *request.RequestUserUpdate) (*entities.User, string, error)
+	Update(ctx context.Context, user *entities.User) (*entities.User, error)
 	FindById(ctx context.Context, id string) ([]*entities.User, error)
 	// Image(user *entities.User) (string, error)
 	VerifyCredential(username string, password string) interface{}
@@ -39,7 +37,7 @@ func (db *userConnection) Create(ctx context.Context, user *entities.User) (*ent
 	return user, nil
 }
 
-func (db *userConnection) Update(ctx context.Context, user *entities.User, req *request.RequestUserUpdate) (*entities.User, string, error) {
+func (db *userConnection) Update(ctx context.Context, user *entities.User) (*entities.User, error) {
 	if user.Password != "" {
 		user.Password = hashAndSalt([]byte(user.Password))
 	} else {
@@ -48,16 +46,11 @@ func (db *userConnection) Update(ctx context.Context, user *entities.User, req *
 		user.Password = tempUser.Password
 	}
 
-	upload, err := helpers.ImageUploadHelper(req.Image)
-	if err != nil {
-		return nil, "", err
-	}
-
 	res := db.connection.WithContext(ctx).Joins("Image").Save(&user)
 	if res.Error != nil {
-		return nil, "", res.Error
+		return nil, res.Error
 	}
-	return user, upload, nil
+	return user, nil
 }
 
 func (db *userConnection) VerifyCredential(username string, password string) interface{} {

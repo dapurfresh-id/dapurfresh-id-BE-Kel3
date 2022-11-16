@@ -53,8 +53,9 @@ func (service *categoryService) CreateCategory(ctx context.Context, req *request
 	}
 
 	catCreate := &entities.Category{
-		ID:   id,
-		Name: req.Name,
+		ID:      id,
+		ImageID: req.ImageID,
+		Name:    req.Name,
 	}
 	fmt.Println("uc:", catCreate)
 	ctx, cancel := context.WithTimeout(ctx, service.contextTimeout)

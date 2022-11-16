@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/aldisaputra17/dapur-fresh-id/helpers"
@@ -37,13 +36,6 @@ func (c *userController) Update(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
-	fileHeader, err := ctx.FormFile("image")
-	log.Println(fileHeader)
-	if err != nil {
-		res := helpers.BuildErrorResponse("Failed to process request", err.Error(), helpers.EmptyObj{})
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
-		return
-	}
 	authHeader := ctx.GetHeader("Authorization")
 	token, errToken := c.jwtService.ValidateToken(authHeader)
 	if errToken != nil {
@@ -52,13 +44,12 @@ func (c *userController) Update(ctx *gin.Context) {
 	claims := token.Claims.(jwt.MapClaims)
 	id := fmt.Sprintf("%v", claims["user_id"])
 	reqUser.ID = uuid.Must(uuid.Parse(id))
-	reqUser.Image = fileHeader
-	result, img, err := c.userService.Update(ctx, reqUser)
+	result, err := c.userService.Update(ctx, reqUser)
 	if err != nil {
 		res := helpers.BuildErrorResponse("Failed to update user", err.Error(), helpers.EmptyObj{})
 		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
-	response := helpers.BuildSuccessUpdate(true, "Updated!", result, map[string]interface{}{"img": img})
+	response := helpers.BuildResponse(true, "Updated!", result)
 	ctx.JSON(http.StatusCreated, response)
 }
