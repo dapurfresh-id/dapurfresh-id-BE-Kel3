@@ -18,6 +18,7 @@ type UserRepository interface {
 	// Image(user *entities.User) (string, error)
 	VerifyCredential(username string, password string) interface{}
 	IsDuplicateEmail(username string) (tx *gorm.DB)
+	GetUser(userID string) *entities.User
 }
 
 type userConnection struct {
@@ -103,4 +104,17 @@ func hashAndSalt(pwd []byte) string {
 		panic("Failed to hash a password")
 	}
 	return string(hash)
+}
+
+func (db *userConnection) GetUser(userID string) *entities.User {
+	log.Println("tes-repo", userID)
+	var user *entities.User
+	// db.connection.First(&user, userID)
+	res := db.connection.Where("id = ?", userID).Take(&user)
+
+	// return user
+	if res.Error == nil {
+		return user
+	}
+	return nil
 }

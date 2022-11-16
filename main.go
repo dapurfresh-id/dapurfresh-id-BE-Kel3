@@ -87,6 +87,7 @@ func main() {
 	userRoutes := api.Group("/user", middleware.AuthorizeJWT(jwtService))
 	{
 		userRoutes.POST("", userController.Update)
+		userRoutes.GET("", userController.GetUser)
 	}
 	orderRoutes := api.Group("/checkout", middleware.AuthorizeJWT(jwtService))
 	{
