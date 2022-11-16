@@ -75,6 +75,7 @@ func main() {
 	userRoutes := api.Group("/user", middleware.AuthorizeJWT(jwtService))
 	{
 		userRoutes.POST("", userController.Update)
+		userRoutes.GET("", userController.GetUser)
 	}
 	prodRoutes := api.Group("/product")
 	{

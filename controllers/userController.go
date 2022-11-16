@@ -15,6 +15,7 @@ import (
 
 type UserController interface {
 	Update(ctx *gin.Context)
+	GetUser(context *gin.Context)
 }
 
 type userController struct {
@@ -61,4 +62,19 @@ func (c *userController) Update(ctx *gin.Context) {
 	}
 	response := helpers.BuildSuccessUpdate(true, "Updated!", result, map[string]interface{}{"img": img})
 	ctx.JSON(http.StatusCreated, response)
+}
+
+func (c *userController) GetUser(context *gin.Context) {
+	authHeader := context.GetHeader("Authorization")
+	token, err := c.jwtService.ValidateToken(authHeader)
+	if err != nil {
+		panic(err.Error())
+	}
+	claims := token.Claims.(jwt.MapClaims)
+	id := fmt.Sprintf("%v", claims["user_id"])
+	log.Println("tes", id)
+	user := c.userService.GetUser(id)
+	res := helpers.BuildResponse(true, "OK", user)
+	context.JSON(http.StatusOK, res)
+
 }
