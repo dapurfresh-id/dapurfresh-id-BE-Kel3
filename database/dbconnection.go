@@ -17,7 +17,7 @@ func ConnectDB() *gorm.DB {
 		panic("Failed to load env file")
 	}
 	dbUser := os.Getenv("DB_USER")
-	dbPass := os.Getenv("DB_PASS")
+	dbPass := os.Getenv("DB_PASSWORD")
 	dbHost := os.Getenv("DB_HOST")
 	dbName := os.Getenv("DB_NAME")
 	dbPort := os.Getenv("DB_PORT")
@@ -33,7 +33,7 @@ func ConnectDB() *gorm.DB {
 	if err != nil {
 		panic("Failed to create a connection to database")
 	}
-	db.AutoMigrate(&entities.User{}, &entities.Product{}, &entities.Category{}, &entities.Cart{}, &entities.Order{})
+	db.AutoMigrate(&entities.User{}, &entities.Product{}, &entities.Category{}, &entities.Cart{}, &entities.Image{})
 	return db
 }
 
