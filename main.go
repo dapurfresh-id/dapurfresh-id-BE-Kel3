@@ -48,8 +48,6 @@ func main() {
 
 	r := gin.Default()
 
-	// r.Static("/file", "./images/category")
-
 	r.Use(cors.Default())
 
 	api := r.Group("api")
@@ -80,7 +78,7 @@ func main() {
 	{
 		prodRoutes.POST("", productController.Create)
 	}
-	imgRoutes := api.Group("img")
+	imgRoutes := api.Group("/img")
 	{
 		imgRoutes.POST("", imgController.Create)
 	}
