@@ -11,7 +11,6 @@ import (
 	"github.com/aldisaputra17/dapur-fresh-id/repositories"
 	"github.com/aldisaputra17/dapur-fresh-id/services"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -49,7 +48,7 @@ func main() {
 
 	// r.Static("/file", "./images/category")
 
-	r.Use(cors.Default())
+	//r.Use(cors.Default())
 
 	api := r.Group("api")
 
