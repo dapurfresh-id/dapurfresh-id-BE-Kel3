@@ -91,7 +91,7 @@ func (db *productConnection) FindProductByNameContains(ctx context.Context, name
 
 func (db *productConnection) PopularProduct(ctx context.Context) (*[]entities.Product, error) {
 	var product *[]entities.Product
-	res := db.connection.WithContext(ctx).Preload("Categories").Order("are_buyed desc").Find(&product)
+	res := db.connection.WithContext(ctx).Preload("Categories").Order("are_buyed desc").Order("name asc").Find(&product)
 	if res.Error != nil {
 		return nil, res.Error
 	}
