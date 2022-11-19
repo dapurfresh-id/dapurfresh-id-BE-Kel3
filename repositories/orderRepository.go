@@ -61,22 +61,18 @@ func (db *orderConnection) Create(ctx context.Context, order *entities.Order) (*
 		fmt.Println("order dosent exists")
 		return nil, fmt.Errorf("order not foud, please add order again")
 	}
-
-	// if orderItem[0].Status == "proses" {
-	// 	CartRp.Trancate(ctx, order.UserID)
-	// }
-
-	res := db.connection.WithContext(ctx).Create(&order)
+	res := db.connection.WithContext(ctx).Save(&order)
+	db.connection.Preload("User").Preload("Carts.Products").Find(&order)
 	if res.Error != nil {
 		return nil, res.Error
 	}
-
+	CartRp.Trancate(ctx, order.UserID, order.CartID)
 	return order, nil
 }
 
 func (db *orderConnection) GetOrder(ctx context.Context, userID string) ([]*entities.Order, error) {
 	var orders []*entities.Order
-	res := db.connection.WithContext(ctx).Where("user_id = ?", userID).Preload("User").Preload("Carts.Products").Find(&orders)
+	res := db.connection.WithContext(ctx).Where("user_id = ?", userID).Preload("User").Preload("Carts.Products.Image").Find(&orders)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -85,7 +81,7 @@ func (db *orderConnection) GetOrder(ctx context.Context, userID string) ([]*enti
 
 func (db *orderConnection) GetDetail(ctx context.Context, id string) (*entities.Order, error) {
 	var order *entities.Order
-	res := db.connection.WithContext(ctx).Where("id = ?", id).Preload("User").Preload("Carts.Products").Find(&order)
+	res := db.connection.WithContext(ctx).Where("id = ?", id).Preload("User").Preload("Carts.Products.Image").Find(&order)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -100,7 +96,7 @@ func (db *orderConnection) PatchStatus(ctx context.Context, order *entities.Orde
 	}
 	orderItem.Status = "cancel"
 	res := db.connection.WithContext(ctx).Model(&order).Where("id = ?", order.ID).Updates(entities.Order{
-		Status: order.Status}).Find(&order)
+		Status: order.Status}).Preload("User").Preload("Carts.Products").Find(&order)
 	if res.Error != nil {
 		return nil, res.Error
 	}

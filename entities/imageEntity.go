@@ -1,10 +1,11 @@
 package entities
 
-import (
-	"github.com/google/uuid"
-)
-
 type Image struct {
-	ID   uuid.UUID `gorm:"primaryKey" json:"id"`
+	ID   string `gorm:"primaryKey" json:"id"`
 	File string `json:"file,omitempty" form:"file" validate:"required"`
 }
+
+// func (img *Image) BeforeCreate() error {
+// 	img.ID = uuid.New().String()
+// 	return nil
+// }

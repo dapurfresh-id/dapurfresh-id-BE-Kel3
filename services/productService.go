@@ -8,21 +8,18 @@ import (
 	"github.com/aldisaputra17/dapur-fresh-id/entities"
 	"github.com/aldisaputra17/dapur-fresh-id/helpers"
 	"github.com/aldisaputra17/dapur-fresh-id/repositories"
+	"github.com/aldisaputra17/dapur-fresh-id/request"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type ProductService interface {
+	Create(ctx context.Context, req *request.ReqeustCreateProduct) (*entities.Product, error)
 	FindAllProduct(ctx context.Context) (*[]entities.Product, error)
 	FindProductById(ctx context.Context, productId string) (*entities.Product, error)
 	FindProductByCategory(ctx context.Context, categoryId string) (*[]entities.Product, error)
-	FindProductByNameEqual(ctx context.Context, name string) (*entities.Product, error)
-	FindProductByNameContains(ctx context.Context, name string) (*entities.Product, error)
-	FindProductByNameLike(ctx context.Context, name string) (*entities.Product, error)
-	LimitProduct(ctx context.Context, limit int) (*[]entities.Product, error)
 	PaginantionProduct(ctx *gin.Context, paginat *entities.Pagination) (helpers.Response, error)
 	PopularProduct(ctx context.Context) (*[]entities.Product, error)
-	// Create(ctx context.Context, req *request.RequestProduct) (*entities.Product, error)
-	// Image(req *request.RequestProduct) (string, error)
 }
 
 type productService struct {
@@ -37,45 +34,30 @@ func NewProductService(productRepo repositories.ProductRepository, time time.Dur
 	}
 }
 
-// func (service *productService) Create(ctx context.Context, req *request.RequestProduct) (*entities.Product, error) {
-// 	id, err := uuid.NewRandom()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	img, errImg := helpers.ImageUploadHelper(req.Image)
-// 	if err != nil {
-// 		return nil, errImg
-// 	}
-// 	// img, _ := service.Image(&request.RequestProduct{Image: req.Image})
+func (service *productService) Create(ctx context.Context, req *request.ReqeustCreateProduct) (*entities.Product, error) {
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return nil, err
+	}
+	prodCreate := &entities.Product{
+		ID:         id,
+		Name:       req.Name,
+		Price:      req.Price,
+		Unit:       req.Unit,
+		ImageID:    req.ImageID,
+		UnitType:   req.UnitType,
+		CategoryID: req.CategoryID,
+	}
+	fmt.Println("uc:", prodCreate)
+	ctx, cancel := context.WithTimeout(ctx, service.contextTimeout)
+	defer cancel()
 
-// 	prodCreate := &entities.Product{
-// 		ID:         id,
-// 		Name:       req.Name,
-// 		Price:      req.Price,
-// 		Unit:       req.Unit,
-// 		Image:      img,
-// 		UnitType:   req.UnitType,
-// 		CategoryID: req.CategoryID,
-// 	}
-// 	fmt.Println("uc:", prodCreate)
-// 	ctx, cancel := context.WithTimeout(ctx, service.contextTimeOuT)
-// 	defer cancel()
-
-// 	prodCreate.Image = img
-// 	res, err := service.productRepository.Create(ctx, prodCreate)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return res, nil
-// }
-
-// func (service *productService) Image(req *request.RequestProduct) (string, error) {
-// 	uploadFile, err := helpers.ImageUploadHelper(req.Image)
-// 	if err != nil {
-// 		return "", nil
-// 	}
-// 	return uploadFile, nil
-// }
+	res, err := service.productRepository.Create(ctx, prodCreate)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
 
 func (service *productService) FindAllProduct(ctx context.Context) (*[]entities.Product, error) {
 	res, err := service.productRepository.FindAllProduct(ctx)
@@ -101,29 +83,6 @@ func (service *productService) FindProductByCategory(ctx context.Context, catego
 	return res, nil
 }
 
-func (service *productService) FindProductByNameEqual(ctx context.Context, name string) (*entities.Product, error) {
-	res, err := service.productRepository.FindProductByNameEqual(ctx, name)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
-}
-
-func (service *productService) FindProductByNameContains(ctx context.Context, name string) (*entities.Product, error) {
-	res, err := service.productRepository.FindProductByNameContains(ctx, name)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
-}
-func (service *productService) FindProductByNameLike(ctx context.Context, name string) (*entities.Product, error) {
-	res, err := service.productRepository.FindProductByNameLike(ctx, name)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
-}
-
 func (service *productService) PopularProduct(ctx context.Context) (*[]entities.Product, error) {
 	res, err := service.productRepository.PopularProduct(ctx)
 	if err != nil {
@@ -132,13 +91,6 @@ func (service *productService) PopularProduct(ctx context.Context) (*[]entities.
 	return res, nil
 }
 
-func (service *productService) LimitProduct(ctx context.Context, limit int) (*[]entities.Product, error) {
-	res, err := service.productRepository.LimitProduct(ctx, limit)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
-}
 func (service *productService) PaginantionProduct(ctx *gin.Context, paginat *entities.Pagination) (helpers.Response, error) {
 	operationResult, totalPages := service.productRepository.PaginationProduct(paginat)
 

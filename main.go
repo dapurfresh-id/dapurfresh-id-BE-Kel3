@@ -10,6 +10,7 @@ import (
 	"github.com/aldisaputra17/dapur-fresh-id/middleware"
 	"github.com/aldisaputra17/dapur-fresh-id/repositories"
 	"github.com/aldisaputra17/dapur-fresh-id/services"
+	"github.com/gin-contrib/cors"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -29,15 +30,15 @@ var (
 	cartService        services.CartService            = services.NewCartService(cartRepository, contextTimeOut)
 	userService        services.UserService            = services.NewUserService(userRepository, contextTimeOut)
 	productService     services.ProductService         = services.NewProductService(productRepository, contextTimeOut)
-	//imgService         services.ImageService           = services.NewImage()
-	orderService       services.OrderService          = services.NewOrderService(orderRepository, contextTimeOut)
-	authController     controllers.AuthController     = controllers.NewAuthController(authService, jwtService)
-	categoryController controllers.CategoryController = controllers.NewCategoryController(categoryService)
-	cartController     controllers.CartController     = controllers.NewCartController(cartService, jwtService)
-	userController     controllers.UserController     = controllers.NewUserController(userService, jwtService)
-	//imgController      controllers.ImageController     = controllers.NewImgController(imgService, db)
-	orderController   controllers.OrderController   = controllers.NewOrderController(orderService, jwtService)
-	productController controllers.ProductController = controllers.NewProductController(productService)
+	imgService         services.ImageService           = services.NewImage()
+	orderService       services.OrderService           = services.NewOrderService(orderRepository, contextTimeOut)
+	authController     controllers.AuthController      = controllers.NewAuthController(authService, jwtService)
+	categoryController controllers.CategoryController  = controllers.NewCategoryController(categoryService)
+	cartController     controllers.CartController      = controllers.NewCartController(cartService, jwtService)
+	userController     controllers.UserController      = controllers.NewUserController(userService, jwtService)
+	imgController      controllers.ImageController     = controllers.NewImgController(imgService, db)
+	orderController    controllers.OrderController     = controllers.NewOrderController(orderService, jwtService)
+	productController  controllers.ProductController   = controllers.NewProductController(productService)
 )
 
 func main() {
@@ -46,9 +47,7 @@ func main() {
 
 	r := gin.Default()
 
-	// r.Static("/file", "./images/category")
-
-	//r.Use(cors.Default())
+	r.Use(cors.Default())
 
 	api := r.Group("api")
 
@@ -63,13 +62,6 @@ func main() {
 		productRoutes.GET("/:id", productController.GetProductById)
 		productRoutes.GET("/search", productController.PaginationProduct)
 		productRoutes.GET("/category", productController.GetProductByCategory)
-		productRoutes.GET("/limit", productController.GetLimitProduct)
-		nameProductRoutes := productRoutes.Group("/name")
-		{
-			nameProductRoutes.GET("equal", productController.GetProductByNameEqual)
-			nameProductRoutes.GET("contains", productController.GetProductByNameContains)
-			nameProductRoutes.GET("like", productController.GetProductByNameLike)
-		}
 		productRoutes.GET("/popular", productController.GetPopularProduct)
 	}
 	categoryRoutes := api.Group("/category")
@@ -86,6 +78,15 @@ func main() {
 	}
 	userRoutes := api.Group("/user", middleware.AuthorizeJWT(jwtService))
 	{
+		userRoutes.PUT("", userController.Update)
+	}
+	prodRoutes := api.Group("/product")
+	{
+		prodRoutes.POST("", productController.Create)
+	}
+	imgRoutes := api.Group("/img")
+	{
+		imgRoutes.POST("", imgController.Create)
 		userRoutes.POST("", userController.Update)
 		userRoutes.GET("", userController.GetUser)
 	}
