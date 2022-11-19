@@ -18,6 +18,6 @@ type Order struct {
 	DeletedAt time.Time `json:"deleted_at"`
 	UserID    string    `gorm:"not null" json:"user_id"`
 	User      User      `gorm:"foreignkey:UserID;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"user"`
-	CartID    string    `gorm:"not null" json:"cart_id"`
-	Carts     Cart      `gorm:"foreignkey:CartID;constraint:onUpdate:CASCADE,onDelete:SET NULL" json:"carts"`
+	CartID    string    `gorm:"default:null" json:"cart_id"`
+	Carts     *Cart     `gorm:"foreignkey:CartID" json:"carts"`
 }

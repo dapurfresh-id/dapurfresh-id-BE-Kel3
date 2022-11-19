@@ -11,7 +11,7 @@ type Product struct {
 	Unit       int       `json:"unit"`
 	UnitType   string    `gorm:"not null;default:gr" json:"unit_type"`
 	ImageID    string    `json:"image_id"`
-	Image      Image     `gorm:"foreignkey:ImageID;constraint:onUpdate:CASCADE,onDelete:SET NULL" json:"image"`
+	Images     Image     `gorm:"foreignkey:ImageID" json:"image"`
 	CategoryID string    `json:"category_id,omitempty"`
 	Categories Category  `gorm:"foreignkey:CategoryID;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"category"`
 }

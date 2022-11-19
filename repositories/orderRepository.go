@@ -61,13 +61,12 @@ func (db *orderConnection) Create(ctx context.Context, order *entities.Order) (*
 		fmt.Println("order dosent exists")
 		return nil, fmt.Errorf("order not foud, please add order again")
 	}
-
-	res := db.connection.WithContext(ctx).Create(&order)
+	res := db.connection.WithContext(ctx).Save(&order)
 	db.connection.Preload("User").Preload("Carts.Products").Find(&order)
 	if res.Error != nil {
 		return nil, res.Error
 	}
-
+	CartRp.Trancate(ctx, order.UserID, order.CartID)
 	return order, nil
 }
 
