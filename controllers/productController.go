@@ -3,7 +3,6 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/aldisaputra17/dapur-fresh-id/helpers"
 	"github.com/aldisaputra17/dapur-fresh-id/request"
@@ -16,10 +15,6 @@ type ProductController interface {
 	GetAllProduct(ctx *gin.Context)
 	GetProductById(ctx *gin.Context)
 	GetProductByCategory(ctx *gin.Context)
-	GetProductByNameEqual(ctx *gin.Context)
-	GetProductByNameContains(ctx *gin.Context)
-	GetProductByNameLike(ctx *gin.Context)
-	GetLimitProduct(ctx *gin.Context)
 	PaginationProduct(ctx *gin.Context)
 	GetPopularProduct(ctx *gin.Context)
 }
@@ -104,45 +99,6 @@ func (c *productController) GetProductByCategory(ctx *gin.Context) {
 	}
 }
 
-func (c *productController) GetProductByNameEqual(ctx *gin.Context) {
-	name := ctx.Query("name")
-	foundProduct, err := c.productService.FindProductByNameEqual(ctx, name)
-	if err != nil {
-		response := helpers.BuildErrorResponse("Failed to readed", err.Error(), helpers.EmptyObj{})
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
-		return
-	} else {
-		response := helpers.BuildResponse(true, "Readed!", foundProduct)
-		ctx.JSON(http.StatusCreated, response)
-	}
-}
-
-func (c *productController) GetProductByNameContains(ctx *gin.Context) {
-	name := ctx.Query("name")
-	foundProduct, err := c.productService.FindProductByNameContains(ctx, name)
-	if err != nil {
-		response := helpers.BuildErrorResponse("Failed to readed", err.Error(), helpers.EmptyObj{})
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
-		return
-	} else {
-		response := helpers.BuildResponse(true, "Readed!", foundProduct)
-		ctx.JSON(http.StatusCreated, response)
-	}
-}
-
-func (c *productController) GetProductByNameLike(ctx *gin.Context) {
-	name := ctx.Query("name")
-	foundProduct, err := c.productService.FindProductByNameLike(ctx, name)
-	if err != nil {
-		response := helpers.BuildErrorResponse("Failed to readed", err.Error(), helpers.EmptyObj{})
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
-		return
-	} else {
-		response := helpers.BuildResponse(true, "Readed!", foundProduct)
-		ctx.JSON(http.StatusCreated, response)
-	}
-}
-
 func (c *productController) GetPopularProduct(ctx *gin.Context) {
 	readedProduct, err := c.productService.PopularProduct(ctx)
 	if err != nil {
@@ -152,20 +108,6 @@ func (c *productController) GetPopularProduct(ctx *gin.Context) {
 	} else {
 		response := helpers.BuildResponse(true, "Readed!", readedProduct)
 		ctx.JSON(http.StatusOK, response)
-	}
-}
-
-func (c *productController) GetLimitProduct(ctx *gin.Context) {
-	limit := ctx.Query("limit")
-	intLimit, err := strconv.Atoi(limit)
-	foundProduct, err := c.productService.LimitProduct(ctx, intLimit)
-	if err != nil {
-		response := helpers.BuildErrorResponse("Failed to readed", err.Error(), helpers.EmptyObj{})
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
-		return
-	} else {
-		response := helpers.BuildResponse(true, "Readed!", foundProduct)
-		ctx.JSON(http.StatusCreated, response)
 	}
 }
 

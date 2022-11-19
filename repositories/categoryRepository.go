@@ -34,7 +34,7 @@ func (db *categoryConnection) FindAllCategory(ctx context.Context) ([]*entities.
 
 func (db *categoryConnection) FindCategoryById(ctx context.Context, categoryId string) (*entities.Category, error) {
 	var category *entities.Category
-	res := db.connection.WithContext(ctx).Where("id = ?", categoryId).Find(&category)
+	res := db.connection.WithContext(ctx).Where("id = ?", categoryId).Preload("Image").Find(&category)
 
 	if res.Error != nil {
 		return nil, res.Error
