@@ -14,7 +14,7 @@ import (
 
 type CategoryService interface {
 	FindAllCategory(ctx context.Context) ([]*entities.Category, error)
-	FindById(ctx context.Context, categoryId string) (*entities.Category, error)
+	FindCategoryById(ctx context.Context, categoryId string) (*entities.Category, error)
 	CreateCategory(ctx context.Context, req *request.RequestCreateCategory) (*entities.Category, error)
 }
 
@@ -38,8 +38,8 @@ func (service *categoryService) FindAllCategory(ctx context.Context) ([]*entitie
 	return res, nil
 }
 
-func (service *categoryService) FindById(ctx context.Context, categoryId string) (*entities.Category, error) {
-	res, err := service.categoryRepository.FindById(ctx, categoryId)
+func (service *categoryService) FindCategoryById(ctx context.Context, categoryId string) (*entities.Category, error) {
+	res, err := service.categoryRepository.FindCategoryById(ctx, categoryId)
 	if err != nil {
 		return nil, err
 	}

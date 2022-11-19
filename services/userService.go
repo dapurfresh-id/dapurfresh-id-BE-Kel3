@@ -11,6 +11,7 @@ import (
 
 type UserService interface {
 	Update(ctx context.Context, user *request.RequestUserUpdate) (*entities.User, error)
+	GetUser(userID string) *entities.User
 }
 
 type userService struct {
@@ -42,4 +43,9 @@ func (service *userService) Update(ctx context.Context, user *request.RequestUse
 		return nil, err
 	}
 	return res, nil
+}
+
+func (service *userService) GetUser(userID string) *entities.User {
+	// log.Println("tes-ser", userID)
+	return service.userRepository.GetUser(userID)
 }

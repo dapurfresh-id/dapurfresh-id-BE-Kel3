@@ -13,6 +13,7 @@ type UserRepository interface {
 	Create(ctx context.Context, user *entities.User) (*entities.User, error)
 	Update(ctx context.Context, user *entities.User) (*entities.User, error)
 	FindById(ctx context.Context, id string) ([]*entities.User, error)
+	GetUser(userID string) *entities.User
 	// Image(user *entities.User) (string, error)
 	VerifyCredential(username string, password string) interface{}
 	IsDuplicateUsername(username string) (tx *gorm.DB)
@@ -104,4 +105,17 @@ func hashAndSalt(pwd []byte) string {
 		panic("Failed to hash a password")
 	}
 	return string(hash)
+}
+
+func (db *userConnection) GetUser(userID string) *entities.User {
+	log.Println("tes-repo", userID)
+	var user *entities.User
+	// db.connection.First(&user, userID)
+	res := db.connection.Where("id = ?", userID).Take(&user)
+
+	// return user
+	if res.Error == nil {
+		return user
+	}
+	return nil
 }

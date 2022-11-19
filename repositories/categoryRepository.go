@@ -9,7 +9,7 @@ import (
 
 type CategoryRepository interface {
 	FindAllCategory(ctx context.Context) ([]*entities.Category, error)
-	FindById(ctx context.Context, categoryId string) (*entities.Category, error)
+	FindCategoryById(ctx context.Context, categoryId string) (*entities.Category, error)
 	CreateCategory(ctx context.Context, category *entities.Category) (*entities.Category, error)
 }
 
@@ -32,7 +32,7 @@ func (db *categoryConnection) FindAllCategory(ctx context.Context) ([]*entities.
 	return category, nil
 }
 
-func (db *categoryConnection) FindById(ctx context.Context, categoryId string) (*entities.Category, error) {
+func (db *categoryConnection) FindCategoryById(ctx context.Context, categoryId string) (*entities.Category, error) {
 	var category *entities.Category
 	res := db.connection.WithContext(ctx).Where("id = ?", categoryId).Find(&category)
 
