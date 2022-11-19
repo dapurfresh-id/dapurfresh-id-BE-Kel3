@@ -19,7 +19,7 @@ type CartRepository interface {
 	Update(ctx context.Context, cart *entities.Cart) (*entities.Cart, error)
 	UpdateDetailCart(ctx context.Context, cart *entities.Cart) (*entities.Cart, error)
 	Delete(ctx context.Context, id string) error
-	Trancate(ctx context.Context, userID string) error
+	Trancate(ctx context.Context, userID string, id string) error
 	FindById(ctx context.Context, id string) (*entities.Cart, error)
 }
 
@@ -45,19 +45,19 @@ func (db *cartConnection) GetProdIdAndUserId(ctx context.Context, userID string,
 func (db *cartConnection) AddCart(ctx context.Context, cart *entities.Cart) (*entities.Cart, error) {
 	prR := NewProductRepository(db.connection)
 
-	prodItems, err := prR.GetProducts(ctx, cart.ProductID)
+	prodItems, err := prR.FindProductById(ctx, cart.ProductID)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(prodItems) <= 0 {
-		lenErr := fmt.Errorf("Product doesnt exists")
-		return nil, lenErr
-	}
+	// if len(prodItems) <= 0 {
+	// 	lenErr := fmt.Errorf("Product doesnt exists")
+	// 	return nil, lenErr
+	// }
 
-	cart.SubTotal = prodItems[0].Price * cart.Quantity
-	cart.Name = prodItems[0].Name
-	cart.Price = prodItems[0].Price
+	cart.SubTotal = prodItems.Price * cart.Quantity
+	cart.Name = prodItems.Name
+	cart.Price = prodItems.Price
 	fmt.Println("model :", cart.UserID, cart.ProductID)
 
 	cartItems, err := db.GetProdIdAndUserId(ctx, cart.UserID, cart.ProductID)
@@ -160,9 +160,9 @@ func (db *cartConnection) FindById(ctx context.Context, id string) (*entities.Ca
 	return cart, nil
 }
 
-func (db *cartConnection) Trancate(ctx context.Context, userID string) error {
+func (db *cartConnection) Trancate(ctx context.Context, userID string, id string) error {
 	var cart *entities.Cart
-	res := db.connection.WithContext(ctx).Where("user_id = ?", userID).Delete(&cart)
+	res := db.connection.WithContext(ctx).Where("user_id = ? and id = ?", userID, id).Delete(&cart)
 	if res.Error != nil {
 		return res.Error
 	}

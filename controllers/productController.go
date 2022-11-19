@@ -12,15 +12,20 @@ import (
 
 type ProductController interface {
 	Create(ctx *gin.Context)
+	GetAllProduct(ctx *gin.Context)
+	GetProductById(ctx *gin.Context)
+	GetProductByCategory(ctx *gin.Context)
+	PaginationProduct(ctx *gin.Context)
+	GetPopularProduct(ctx *gin.Context)
 }
 
 type productController struct {
-	prodService services.ProductService
+	productService services.ProductService
 }
 
-func NewProductController(prodService services.ProductService) ProductController {
+func NewProductController(productService services.ProductService) ProductController {
 	return &productController{
-		prodService: prodService,
+		productService: productService,
 	}
 }
 
@@ -32,7 +37,7 @@ func (c *productController) Create(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
-	result, err := c.prodService.Create(ctx, req)
+	result, err := c.productService.Create(ctx, req)
 	if err != nil {
 		res := helpers.BuildErrorResponse("failed create product", err.Error(), helpers.EmptyObj{})
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
@@ -46,4 +51,81 @@ func (c *productController) Create(ctx *gin.Context) {
 	}
 	res := helpers.BuildResponse(true, "Created", result)
 	ctx.JSON(http.StatusCreated, res)
+}
+
+func (c *productController) GetAllProduct(ctx *gin.Context) {
+	readedProduct, err := c.productService.FindAllProduct(ctx)
+	if err != nil {
+		response := helpers.BuildErrorResponse("Failed to readed", err.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	} else {
+		response := helpers.BuildResponse(true, "Readed!", readedProduct)
+		ctx.JSON(http.StatusOK, response)
+	}
+	fmt.Println("product:", readedProduct)
+	if err != nil {
+		res := helpers.BuildErrorResponse("failed create product", err.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+	res := helpers.BuildResponse(true, "Created", readedProduct)
+	ctx.JSON(http.StatusCreated, res)
+}
+
+func (c *productController) GetProductById(ctx *gin.Context) {
+	productId := ctx.Param("id")
+	foundProduct, err := c.productService.FindProductById(ctx, productId)
+	if err != nil {
+		response := helpers.BuildErrorResponse("Failed to readed", err.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	} else {
+		response := helpers.BuildResponse(true, "Readed!", foundProduct)
+		ctx.JSON(http.StatusCreated, response)
+	}
+}
+
+func (c *productController) GetProductByCategory(ctx *gin.Context) {
+	categoryId := ctx.Query("category_id")
+	foundProduct, err := c.productService.FindProductByCategory(ctx, categoryId)
+	if err != nil {
+		response := helpers.BuildErrorResponse("Failed to readed", err.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	} else {
+		response := helpers.BuildResponse(true, "Readed!", foundProduct)
+		ctx.JSON(http.StatusCreated, response)
+	}
+}
+
+func (c *productController) GetPopularProduct(ctx *gin.Context) {
+	readedProduct, err := c.productService.PopularProduct(ctx)
+	if err != nil {
+		response := helpers.BuildErrorResponse("Failed to readed", err.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	} else {
+		response := helpers.BuildResponse(true, "Readed!", readedProduct)
+		ctx.JSON(http.StatusOK, response)
+	}
+}
+
+func (c *productController) PaginationProduct(ctx *gin.Context) {
+	code := http.StatusOK
+	pagination := helpers.GeneratePaginationRequest(ctx)
+
+	response, err := c.productService.PaginantionProduct(ctx, pagination)
+	if err != nil {
+		res := helpers.BuildErrorResponse("Failed pagination products", err.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+
+	if !response.Success {
+		code = http.StatusBadRequest
+	}
+
+	res := helpers.BuildResponse(true, "Ok", response)
+	ctx.AbortWithStatusJSON(code, res)
 }

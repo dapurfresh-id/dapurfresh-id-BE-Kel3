@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/aldisaputra17/dapur-fresh-id/entities"
@@ -48,7 +49,7 @@ func (c *authController) Login(ctx *gin.Context) {
 }
 
 func (c *authController) Register(ctx *gin.Context) {
-	var reqRegister request.RequestRegister
+	var reqRegister *request.RequestRegister
 	errObj := ctx.ShouldBind(&reqRegister)
 	if errObj != nil {
 		response := helpers.BuildErrorResponse("Failed to process request", errObj.Error(), helpers.EmptyObj{})
@@ -63,8 +64,9 @@ func (c *authController) Register(ctx *gin.Context) {
 	}
 	createdUser, err := c.authService.CreateUser(ctx, reqRegister)
 	if err != nil {
-		response := helpers.BuildErrorResponse("Failed to created", errObj.Error(), helpers.EmptyObj{})
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		res := helpers.BuildErrorResponse("Failed to created", err.Error(), helpers.EmptyObj{})
+		ctx.JSON(http.StatusBadRequest, res)
+		fmt.Println("erorr", err)
 		return
 	} else {
 		token := c.jwtService.GenerateToken(createdUser.ID)

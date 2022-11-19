@@ -13,7 +13,7 @@ type User struct {
 	Password  string    `gorm:"->;<-;not null" json:"-" validate:"required, min=6"`
 	Phone     string    `gorm:"type:varchar(255)" json:"phone" validate:"required, min=11"`
 	ImageID   string    `json:"image_id"`
-	Image     Image     `gorm:"foreignkey:ImageID;constraint:onUpdate:CASCADE,onDelete:SET NULL" json:"image"`
+	Images    Image     `gorm:"foreignkey:ImageID" json:"image"`
 	Token     string    `gorm:"-" json:"token,omitempty"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

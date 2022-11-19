@@ -10,8 +10,8 @@ import (
 	"github.com/aldisaputra17/dapur-fresh-id/middleware"
 	"github.com/aldisaputra17/dapur-fresh-id/repositories"
 	"github.com/aldisaputra17/dapur-fresh-id/services"
-
 	"github.com/gin-contrib/cors"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -36,13 +36,12 @@ var (
 	categoryController controllers.CategoryController  = controllers.NewCategoryController(categoryService)
 	cartController     controllers.CartController      = controllers.NewCartController(cartService, jwtService)
 	userController     controllers.UserController      = controllers.NewUserController(userService, jwtService)
-	productController  controllers.ProductController   = controllers.NewProductController(productService)
 	imgController      controllers.ImageController     = controllers.NewImgController(imgService, db)
 	orderController    controllers.OrderController     = controllers.NewOrderController(orderService, jwtService)
+	productController  controllers.ProductController   = controllers.NewProductController(productService)
 )
 
 func main() {
-	gin.SetMode(gin.ReleaseMode)
 	fmt.Println("Start Server")
 	defer database.CloseDatabaseConnection(db)
 
@@ -57,11 +56,18 @@ func main() {
 		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/register", authController.Register)
 	}
+	productRoutes := api.Group("/product")
+	{
+		productRoutes.GET("/", productController.GetAllProduct)
+		productRoutes.GET("/:id", productController.GetProductById)
+		productRoutes.GET("/search", productController.PaginationProduct)
+		productRoutes.GET("/category", productController.GetProductByCategory)
+		productRoutes.GET("/popular", productController.GetPopularProduct)
+	}
 	categoryRoutes := api.Group("/category")
 	{
 		categoryRoutes.GET("", categoryController.GetAllCategory)
 		categoryRoutes.GET("/:id", categoryController.GetCategoryById)
-		categoryRoutes.POST("", categoryController.CreateCategory)
 	}
 	cartRoutes := api.Group("/cart", middleware.AuthorizeJWT(jwtService))
 	{
@@ -81,6 +87,8 @@ func main() {
 	imgRoutes := api.Group("/img")
 	{
 		imgRoutes.POST("", imgController.Create)
+		userRoutes.POST("", userController.Update)
+		userRoutes.GET("", userController.GetUser)
 	}
 	orderRoutes := api.Group("/checkout", middleware.AuthorizeJWT(jwtService))
 	{
