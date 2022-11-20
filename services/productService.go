@@ -108,17 +108,17 @@ func (service *productService) PaginantionProduct(ctx *gin.Context, paginat *ent
 		searchQueryParams += fmt.Sprintf("&%s.%s=%s", search.Column, search.Action, search.Query)
 	}
 
-	data.FirstPage = fmt.Sprintf("%s?limit=%d&page=%d&sort=%s", urlPath, paginat.Limit, 0, paginat.Sort) + searchQueryParams
-	data.LastPage = fmt.Sprintf("%s?limit=%d&page=%d&sort=%s", urlPath, paginat.Limit, totalPages, paginat.Sort) + searchQueryParams
+	data.FirstPage = fmt.Sprintf("%s?limit=%d&page=%d&sort_product=%s", urlPath, paginat.Limit, 0, paginat.SortProduct) + searchQueryParams
+	data.LastPage = fmt.Sprintf("%s?limit=%d&page=%d&sort_product=%s", urlPath, paginat.Limit, totalPages, paginat.SortProduct) + searchQueryParams
 
 	if data.Page > 0 {
 		// set previous page pagination response
-		data.PreviousPage = fmt.Sprintf("%s?limit=%d&page=%d&sort=%s", urlPath, paginat.Limit, data.Page-1, paginat.Sort) + searchQueryParams
+		data.PreviousPage = fmt.Sprintf("%s?limit=%d&page=%d&sort_product=%s", urlPath, paginat.Limit, data.Page-1, paginat.SortProduct) + searchQueryParams
 	}
 
 	if data.Page < totalPages {
 		// set next page pagination response
-		data.NextPage = fmt.Sprintf("%s?limit=%d&page=%d&sort=%s", urlPath, paginat.Limit, data.Page+1, paginat.Sort) + searchQueryParams
+		data.NextPage = fmt.Sprintf("%s?limit=%d&page=%d&sort_product=%s", urlPath, paginat.Limit, data.Page+1, paginat.SortProduct) + searchQueryParams
 	}
 
 	if data.Page > totalPages {
