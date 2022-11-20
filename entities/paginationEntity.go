@@ -9,7 +9,8 @@ type Search struct {
 type Pagination struct {
 	Limit        int         `json:"limit"`
 	Page         int         `json:"page"`
-	Sort         string      `json:"sort"`
+	SortProduct  string      `json:"sort_product"`
+	SortOrder    string      `json:"sort_order"`
 	TotalRows    int         `json:"total_rows"`
 	FirstPage    string      `json:"first_page"`
 	PreviousPage string      `json:"previous_page"`

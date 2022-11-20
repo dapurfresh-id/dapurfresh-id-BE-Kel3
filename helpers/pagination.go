@@ -16,8 +16,9 @@ type PaginationResult struct {
 func GeneratePaginationRequest(context *gin.Context) *entities.Pagination {
 	// default limit, page & sort parameter
 	limit := 10
-	page := 1
-	sort := "name asc"
+	page := 0
+	sortProduct := "name asc"
+	sortOrder := "created_at asc"
 
 	var searchs []entities.Search
 
@@ -33,9 +34,11 @@ func GeneratePaginationRequest(context *gin.Context) *entities.Pagination {
 		case "page":
 			page, _ = strconv.Atoi(queryValue)
 			break
-		case "sort":
-			sort = queryValue
+		case "sort_product":
+			sortProduct = queryValue
 			break
+		case "sort_order":
+			sortOrder = queryValue
 		}
 
 		// check if query parameter key contains dot
@@ -51,5 +54,5 @@ func GeneratePaginationRequest(context *gin.Context) *entities.Pagination {
 		}
 	}
 
-	return &entities.Pagination{Limit: limit, Page: page, Sort: sort, Searchs: searchs}
+	return &entities.Pagination{Limit: limit, Page: page, SortProduct: sortProduct, SortOrder: sortOrder, Searchs: searchs}
 }

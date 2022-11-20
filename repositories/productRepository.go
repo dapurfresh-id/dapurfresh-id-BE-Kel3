@@ -87,7 +87,7 @@ func (db *productConnection) PaginationProduct(pagination *entities.Pagination) 
 
 	offset := pagination.Page * pagination.Limit
 
-	find := db.connection.Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
+	find := db.connection.Limit(pagination.Limit).Offset(offset).Order(pagination.SortProduct)
 
 	searchs := pagination.Searchs
 

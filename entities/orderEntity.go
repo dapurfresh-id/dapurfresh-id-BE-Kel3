@@ -8,6 +8,7 @@ import (
 
 type Order struct {
 	ID        uuid.UUID `gorm:"primaryKey" json:"id"`
+	Name      string    `gorm:"type:varchar(255)" json:"name"`
 	Catatan   string    `gorm:"type:varchar(255)" json:"catatan" validate:"required, max=255"`
 	Address   string    `gorm:"type:varchar(255)" json:"address" validate:"required, max=100"`
 	Status    string    `gorm:"not null;default:proses" json:"status"`
@@ -19,5 +20,5 @@ type Order struct {
 	UserID    string    `gorm:"not null" json:"user_id"`
 	User      User      `gorm:"foreignkey:UserID;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"user"`
 	CartID    string    `gorm:"default:null" json:"cart_id"`
-	Carts     *Cart     `gorm:"foreignkey:CartID" json:"carts"`
+	Carts     Cart      `gorm:"foreignkey:CartID;constraint:onUpdate:CASCADE,onDelete:SET NULL" json:"-"`
 }
