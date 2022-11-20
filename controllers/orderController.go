@@ -56,21 +56,28 @@ func (c *orderController) Create(ctx *gin.Context) {
 }
 
 func (c *orderController) GetOrder(ctx *gin.Context) {
+	code := http.StatusOK
 	authHeader := ctx.GetHeader("Authorization")
-	token, errTkn := c.jwtService.ValidateToken(authHeader)
+	_, errTkn := c.jwtService.ValidateToken(authHeader)
 	if errTkn != nil {
 		panic(errTkn.Error())
 	}
-	claims := token.Claims.(jwt.MapClaims)
-	userID := fmt.Sprintf("%v", claims["user_id"])
-	list, err := c.orderService.GetOrder(ctx, userID)
+	paginate := helpers.GeneratePaginationRequest(ctx)
+
+	res, err := c.orderService.GetOrder(ctx, paginate)
 	if err != nil {
-		res := helpers.BuildErrorResponse("Failed to list order", err.Error(), helpers.EmptyObj{})
-		ctx.JSON(http.StatusBadRequest, res)
+		res := helpers.BuildErrorResponse("Failed pagination products", err.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
-	res := helpers.BuildResponse(true, "Ok", list)
-	ctx.JSON(http.StatusOK, res)
+
+	if !res.Success {
+		code = http.StatusBadRequest
+	}
+
+	response := helpers.BuildResponse(true, "Ok", res)
+	ctx.AbortWithStatusJSON(code, response)
+
 }
 
 func (c *orderController) GetDetail(ctx *gin.Context) {
