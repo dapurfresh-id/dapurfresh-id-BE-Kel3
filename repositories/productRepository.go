@@ -15,12 +15,9 @@ type ProductRepository interface {
 	FindAllProduct(ctx context.Context) (*[]entities.Product, error)
 	FindProductById(ctx context.Context, productId string) (*entities.Product, error)
 	FindProductByCategory(ctx context.Context, categoryId string) (*[]entities.Product, error)
-	FindProductByNameEqual(ctx context.Context, name string) (*entities.Product, error)
-	FindProductByNameContains(ctx context.Context, name string) (*entities.Product, error)
-	FindProductByNameLike(ctx context.Context, name string) (*entities.Product, error)
-	LimitProduct(ctx context.Context, limit int) (*[]entities.Product, error)
 	PaginationProduct(pagination *entities.Pagination) (helpers.PaginationResult, int)
 	PopularProduct(ctx context.Context) (*[]entities.Product, error)
+	Create(ctx context.Context, product *entities.Product) (*entities.Product, error)
 }
 
 type productConnection struct {
@@ -33,9 +30,17 @@ func NewProductRepository(db *gorm.DB) ProductRepository {
 	}
 }
 
+func (db *productConnection) Create(ctx context.Context, product *entities.Product) (*entities.Product, error) {
+	res := db.connection.WithContext(ctx).Create(&product)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return product, nil
+}
+
 func (db *productConnection) FindAllProduct(ctx context.Context) (*[]entities.Product, error) {
 	var product *[]entities.Product
-	res := db.connection.WithContext(ctx).Preload("Categories").Find(&product)
+	res := db.connection.WithContext(ctx).Preload("Categories").Preload("Images").Find(&product)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -44,7 +49,7 @@ func (db *productConnection) FindAllProduct(ctx context.Context) (*[]entities.Pr
 
 func (db *productConnection) FindProductById(ctx context.Context, productId string) (*entities.Product, error) {
 	var product *entities.Product
-	res := db.connection.WithContext(ctx).Where("id = ?", productId).Preload("Categories").First(&product)
+	res := db.connection.WithContext(ctx).Where("id = ?", productId).Preload("Categories").Preload("Images").First(&product)
 
 	if res.Error != nil {
 		return nil, res.Error
@@ -53,36 +58,8 @@ func (db *productConnection) FindProductById(ctx context.Context, productId stri
 }
 func (db *productConnection) FindProductByCategory(ctx context.Context, categoryId string) (*[]entities.Product, error) {
 	var product *[]entities.Product
-	res := db.connection.WithContext(ctx).Where("category_id = ?", categoryId).Preload("Categories").Find(&product)
+	res := db.connection.WithContext(ctx).Where("category_id = ?", categoryId).Preload("Categories").Preload("Images").Find(&product)
 
-	if res.Error != nil {
-		return nil, res.Error
-	}
-	return product, nil
-}
-
-func (db *productConnection) FindProductByNameEqual(ctx context.Context, name string) (*entities.Product, error) {
-	var product *entities.Product
-	res := db.connection.WithContext(ctx).Where("name = ?", name).Preload("Categories").First(&product)
-	if res.Error != nil {
-		return nil, res.Error
-	}
-	return product, nil
-}
-
-func (db *productConnection) FindProductByNameLike(ctx context.Context, name string) (*entities.Product, error) {
-	var product *entities.Product
-	stringLike := "%" + name + "%"
-	res := db.connection.WithContext(ctx).Where("name LIKE ?", stringLike).Preload("Categories").First(&product)
-	if res.Error != nil {
-		return nil, res.Error
-	}
-	return product, nil
-}
-
-func (db *productConnection) FindProductByNameContains(ctx context.Context, name string) (*entities.Product, error) {
-	var product *entities.Product
-	res := db.connection.WithContext(ctx).Where("name IN ?", []string{name}).Preload("Categories").First(&product)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -91,16 +68,7 @@ func (db *productConnection) FindProductByNameContains(ctx context.Context, name
 
 func (db *productConnection) PopularProduct(ctx context.Context) (*[]entities.Product, error) {
 	var product *[]entities.Product
-	res := db.connection.WithContext(ctx).Preload("Categories").Order("are_buyed desc").Order("name asc").Find(&product)
-	if res.Error != nil {
-		return nil, res.Error
-	}
-	return product, nil
-}
-
-func (db *productConnection) LimitProduct(ctx context.Context, limit int) (*[]entities.Product, error) {
-	var product *[]entities.Product
-	res := db.connection.WithContext(ctx).Limit(limit).Preload("Categories").Find(&product)
+	res := db.connection.WithContext(ctx).Preload("Categories").Preload("Images").Order("are_buyed desc").Order("name asc").Find(&product)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -142,7 +110,7 @@ func (db *productConnection) PaginationProduct(pagination *entities.Pagination) 
 		}
 	}
 
-	find = find.Preload("Categories").Find(&prod)
+	find = find.Preload("Categories").Preload("Images").Find(&prod)
 
 	errFind := find.Error
 

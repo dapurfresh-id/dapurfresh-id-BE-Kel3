@@ -1,6 +1,8 @@
 package entities
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+)
 
 type Product struct {
 	ID         uuid.UUID `gorm:"primaryKey" json:"id"`
@@ -8,8 +10,9 @@ type Product struct {
 	Price      int       `json:"price"`
 	Unit       int       `json:"unit"`
 	UnitType   string    `gorm:"not null;default:gr" json:"unit_type"`
-	Image      string    `json:"image"`
+	ImageID    string    `json:"image_id"`
+	Images     Image     `gorm:"foreignkey:ImageID" json:"image"`
 	CategoryID string    `json:"category_id,omitempty"`
-	Categories Category  `gorm:"foreignkey:CategoryID;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"categories"`
+	Categories Category  `gorm:"foreignkey:CategoryID;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"category"`
 	AreBuyed   int       `gorm:"not null;default:0" json:"are_buyed"`
 }

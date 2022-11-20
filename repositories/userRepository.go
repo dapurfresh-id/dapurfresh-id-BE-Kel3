@@ -12,8 +12,12 @@ import (
 type UserRepository interface {
 	Create(ctx context.Context, user *entities.User) (*entities.User, error)
 	Update(ctx context.Context, user *entities.User) (*entities.User, error)
+	FindById(ctx context.Context, id string) ([]*entities.User, error)
+	GetUser(userID string) *entities.User
+	// Image(user *entities.User) (string, error)
 	VerifyCredential(username string, password string) interface{}
-	IsDuplicateEmail(username string) (tx *gorm.DB)
+	IsDuplicateUsername(username string) (tx *gorm.DB)
+	FindByUsername(username string) *entities.User
 }
 
 type userConnection struct {
@@ -29,6 +33,7 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 func (db *userConnection) Create(ctx context.Context, user *entities.User) (*entities.User, error) {
 	user.Password = hashAndSalt([]byte(user.Password))
 	res := db.connection.WithContext(ctx).Create(&user)
+	db.connection.Preload("Images").Find(&user)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -44,7 +49,7 @@ func (db *userConnection) Update(ctx context.Context, user *entities.User) (*ent
 		user.Password = tempUser.Password
 	}
 
-	res := db.connection.Save(&user)
+	res := db.connection.WithContext(ctx).Joins("Image").Save(&user)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -60,10 +65,38 @@ func (db *userConnection) VerifyCredential(username string, password string) int
 	return nil
 }
 
-func (db *userConnection) IsDuplicateEmail(username string) (tx *gorm.DB) {
+func (db *userConnection) IsDuplicateUsername(username string) (tx *gorm.DB) {
 	var user entities.User
 	return db.connection.Where("username = ?", username).Take(&user)
 }
+
+func (db *userConnection) FindById(ctx context.Context, id string) ([]*entities.User, error) {
+	var user []*entities.User
+	res := db.connection.WithContext(ctx).Where("id = ?", id).Find(&user)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return user, nil
+}
+
+func (db *userConnection) FindByUsername(username string) *entities.User {
+	var user *entities.User
+	db.connection.Where("username = ?", username).Take(&user)
+	return user
+}
+
+// func (db *userConnection) Image(user *entities.User) (string, error) {
+// 	upload, err := helpers.ImageUploadHelper(user.Image)
+// 	if err != nil {
+// 		return "", err
+// 	}
+
+// 	res := db.connection.Create(&user)
+// 	if res.Error != nil {
+// 		return "", res.Error
+// 	}
+// 	return upload, nil
+// }
 
 func hashAndSalt(pwd []byte) string {
 	hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)
@@ -72,4 +105,17 @@ func hashAndSalt(pwd []byte) string {
 		panic("Failed to hash a password")
 	}
 	return string(hash)
+}
+
+func (db *userConnection) GetUser(userID string) *entities.User {
+	log.Println("tes-repo", userID)
+	var user *entities.User
+	// db.connection.First(&user, userID)
+	res := db.connection.Where("id = ?", userID).Take(&user)
+
+	// return user
+	if res.Error == nil {
+		return user
+	}
+	return nil
 }

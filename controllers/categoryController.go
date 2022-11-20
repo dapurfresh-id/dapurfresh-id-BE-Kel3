@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/aldisaputra17/dapur-fresh-id/helpers"
-	"github.com/aldisaputra17/dapur-fresh-id/request"
 	"github.com/aldisaputra17/dapur-fresh-id/services"
 	"github.com/gin-gonic/gin"
 )
@@ -25,11 +24,9 @@ func NewCategoryController(categoryService services.CategoryService) CategoryCon
 }
 
 func (c *categoryController) GetAllCategory(ctx *gin.Context) {
-	var reqCategory request.RequestCategory
-	errObj := ctx.ShouldBind(&reqCategory)
 	readedCategory, err := c.categoryService.FindAllCategory(ctx)
 	if err != nil {
-		response := helpers.BuildErrorResponse("Failed to readed", errObj.Error(), helpers.EmptyObj{})
+		response := helpers.BuildErrorResponse("Failed to readed", err.Error(), helpers.EmptyObj{})
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	} else {
