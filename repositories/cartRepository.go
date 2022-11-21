@@ -80,7 +80,7 @@ func (db *cartConnection) AddCart(ctx context.Context, cart *entities.Cart) (*en
 
 func (db *cartConnection) GetCarts(ctx context.Context, userID string) ([]*entities.Cart, error) {
 	var carts []*entities.Cart
-	res := db.connection.WithContext(ctx).Where("user_id = ?", userID).Preload("Products.Categories").Preload("Products.Image").Preload("User").Find(&carts)
+	res := db.connection.WithContext(ctx).Where("user_id = ?", userID).Preload("Products.Categories").Preload("Products.Images").Preload("User").Find(&carts)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -152,7 +152,7 @@ func (db *cartConnection) UpdateDetailCart(ctx context.Context, cart *entities.C
 
 func (db *cartConnection) FindById(ctx context.Context, id string) (*entities.Cart, error) {
 	var cart *entities.Cart
-	res := db.connection.WithContext(ctx).Where("id = ?", id).Preload("Products").Find(&cart)
+	res := db.connection.WithContext(ctx).Where("id = ?", id).Preload("Products.Categories").Preload("Products.Images").Find(&cart)
 	if res.Error != nil {
 		return nil, res.Error
 	}
