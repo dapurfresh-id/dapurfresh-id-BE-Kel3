@@ -18,7 +18,7 @@ type CartRepository interface {
 	CovertDetailCartMap(ctx context.Context, userID string) (map[string](*entities.Cart), error)
 	Update(ctx context.Context, cart *entities.Cart) (*entities.Cart, error)
 	UpdateDetailCart(ctx context.Context, cart *entities.Cart) (*entities.Cart, error)
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, cart *entities.Cart) error
 	Trancate(ctx context.Context, userID string, id string) error
 	FindById(ctx context.Context, id string) (*entities.Cart, error)
 }
@@ -123,9 +123,8 @@ func (db *cartConnection) Update(ctx context.Context, cart *entities.Cart) (*ent
 	return cart, nil
 }
 
-func (db *cartConnection) Delete(ctx context.Context, id string) error {
-	var cart *entities.Cart
-	res := db.connection.WithContext(ctx).Where("id = ?", id).Delete(&cart)
+func (db *cartConnection) Delete(ctx context.Context, cart *entities.Cart) error {
+	res := db.connection.WithContext(ctx).Delete(&cart)
 	if res.Error != nil {
 		return nil
 	}
