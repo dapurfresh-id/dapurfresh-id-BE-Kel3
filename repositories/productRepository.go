@@ -18,6 +18,7 @@ type ProductRepository interface {
 	PaginationProduct(pagination *entities.Pagination) (helpers.PaginationResult, int)
 	PopularProduct(ctx context.Context) (*[]entities.Product, error)
 	Create(ctx context.Context, product *entities.Product) (*entities.Product, error)
+	Update(ctx context.Context, cartID string) (*entities.Product, error)
 }
 
 type productConnection struct {
@@ -56,6 +57,41 @@ func (db *productConnection) FindProductById(ctx context.Context, productId stri
 	}
 	return product, nil
 }
+
+func (db *productConnection) Update(ctx context.Context, cartID string) (*entities.Product, error) {
+	var carts *entities.Cart
+	var products *entities.Product
+	cart := db.connection.WithContext(ctx).Where("id = ?", cartID).Preload("Products").Find(&carts)
+	product := db.connection.WithContext(ctx).Where("id = ?", carts.ProductID).Preload("Categories").Preload("Images").First(&products)
+
+	if cart.Error != nil {
+		return nil, cart.Error
+	}
+	if product.Error != nil {
+		return nil, cart.Error
+	}
+	query := `UPDATE products set are_buyed = ? WHERE id = ?`
+	stmt, err := db.connection.ConnPool.PrepareContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	res, err := stmt.ExecContext(ctx, carts.Quantity+products.AreBuyed, carts.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	rowAffected, err := res.RowsAffected()
+	if err != nil {
+		return nil, err
+	}
+
+	if rowAffected != 1 {
+		err = fmt.Errorf("Weird  Behaviour. Total Affected: %d", rowAffected)
+		return nil, err
+	}
+	return products, nil
+}
+
 func (db *productConnection) FindProductByCategory(ctx context.Context, categoryId string) (*[]entities.Product, error) {
 	var product *[]entities.Product
 	res := db.connection.WithContext(ctx).Where("category_id = ?", categoryId).Preload("Categories").Preload("Images").Find(&product)

@@ -20,6 +20,7 @@ type ProductService interface {
 	FindProductByCategory(ctx context.Context, categoryId string) (*[]entities.Product, error)
 	PaginantionProduct(ctx *gin.Context, paginat *entities.Pagination) (helpers.Response, error)
 	PopularProduct(ctx context.Context) (*[]entities.Product, error)
+	Update(ctx context.Context, cartID string) (*entities.Product, error)
 }
 
 type productService struct {
@@ -85,6 +86,14 @@ func (service *productService) FindProductByCategory(ctx context.Context, catego
 
 func (service *productService) PopularProduct(ctx context.Context) (*[]entities.Product, error) {
 	res, err := service.productRepository.PopularProduct(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (service *productService) Update(ctx context.Context, cartID string) (*entities.Product, error) {
+	res, err := service.productRepository.Update(ctx, cartID)
 	if err != nil {
 		return nil, err
 	}

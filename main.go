@@ -63,6 +63,7 @@ func main() {
 		productRoutes.GET("/search", productController.PaginationProduct)
 		productRoutes.GET("/category", productController.GetProductByCategory)
 		productRoutes.GET("/popular", productController.GetPopularProduct)
+		productRoutes.PUT("/checkout/:id", productController.UpdateProduct)
 	}
 	categoryRoutes := api.Group("/category")
 	{

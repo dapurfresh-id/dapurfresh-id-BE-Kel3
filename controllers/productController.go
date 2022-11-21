@@ -17,6 +17,7 @@ type ProductController interface {
 	GetProductByCategory(ctx *gin.Context)
 	PaginationProduct(ctx *gin.Context)
 	GetPopularProduct(ctx *gin.Context)
+	UpdateProduct(ctx *gin.Context)
 }
 
 type productController struct {
@@ -107,6 +108,19 @@ func (c *productController) GetPopularProduct(ctx *gin.Context) {
 		return
 	} else {
 		response := helpers.BuildResponse(true, "Readed!", readedProduct)
+		ctx.JSON(http.StatusOK, response)
+	}
+}
+
+func (c *productController) UpdateProduct(ctx *gin.Context) {
+	cartID := ctx.Param("id")
+	updatedProduct, err := c.productService.Update(ctx, cartID)
+	if err != nil {
+		response := helpers.BuildErrorResponse("Failed to update", err.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	} else {
+		response := helpers.BuildResponse(true, "Updated!", updatedProduct)
 		ctx.JSON(http.StatusOK, response)
 	}
 }
