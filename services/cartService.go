@@ -17,7 +17,7 @@ type CartService interface {
 	GetCarts(ctx context.Context, userID string) ([]*entities.Cart, error)
 	Refresh(ctx context.Context, userID string) error
 	GetTotalCartValue(cart []*entities.Cart) int
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, cart *entities.Cart) error
 	Update(ctx context.Context, req *request.RequestCartUpdate) (*entities.Cart, error)
 	IsAllowedToEdit(ctx context.Context, userID string, cartID string) bool
 }
@@ -112,11 +112,11 @@ func (service *cartService) GetTotalCartValue(cart []*entities.Cart) int {
 	return total
 }
 
-func (service *cartService) Delete(ctx context.Context, id string) error {
+func (service *cartService) Delete(ctx context.Context, cart *entities.Cart) error {
 	ctx, cancel := context.WithTimeout(ctx, service.contextTimeOut)
 	defer cancel()
 
-	return service.repository.Delete(ctx, id)
+	return service.repository.Delete(ctx, cart)
 }
 
 func (service *cartService) Update(ctx context.Context, req *request.RequestCartUpdate) (*entities.Cart, error) {
