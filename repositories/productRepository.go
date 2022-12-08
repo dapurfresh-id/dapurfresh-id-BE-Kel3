@@ -16,6 +16,7 @@ type ProductRepository interface {
 	FindProductById(ctx context.Context, productId string) (*entities.Product, error)
 	FindProductByCategory(ctx context.Context, categoryId string) (*[]entities.Product, error)
 	PaginationProduct(pagination *entities.Pagination) (helpers.PaginationResult, int)
+	UpdateBuy(ctx context.Context, prod *entities.Product) (*entities.Product, error)
 	PopularProduct(ctx context.Context) (*[]entities.Product, error)
 	Create(ctx context.Context, product *entities.Product) (*entities.Product, error)
 }
@@ -40,7 +41,7 @@ func (db *productConnection) Create(ctx context.Context, product *entities.Produ
 
 func (db *productConnection) FindAllProduct(ctx context.Context) (*[]entities.Product, error) {
 	var product *[]entities.Product
-	res := db.connection.WithContext(ctx).Preload("Categories").Preload("Images").Find(&product)
+	res := db.connection.WithContext(ctx).Preload("Categories.Image").Preload("Images").Find(&product)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -49,7 +50,7 @@ func (db *productConnection) FindAllProduct(ctx context.Context) (*[]entities.Pr
 
 func (db *productConnection) FindProductById(ctx context.Context, productId string) (*entities.Product, error) {
 	var product *entities.Product
-	res := db.connection.WithContext(ctx).Where("id = ?", productId).Preload("Categories").Preload("Images").First(&product)
+	res := db.connection.WithContext(ctx).Where("id = ?", productId).Preload("Images").Preload("Categories.Image").First(&product)
 
 	if res.Error != nil {
 		return nil, res.Error
@@ -58,7 +59,7 @@ func (db *productConnection) FindProductById(ctx context.Context, productId stri
 }
 func (db *productConnection) FindProductByCategory(ctx context.Context, categoryId string) (*[]entities.Product, error) {
 	var product *[]entities.Product
-	res := db.connection.WithContext(ctx).Where("category_id = ?", categoryId).Preload("Categories").Preload("Images").Find(&product)
+	res := db.connection.WithContext(ctx).Where("category_id = ?", categoryId).Preload("Categories.Image").Preload("Images").Find(&product)
 
 	if res.Error != nil {
 		return nil, res.Error
@@ -68,7 +69,7 @@ func (db *productConnection) FindProductByCategory(ctx context.Context, category
 
 func (db *productConnection) PopularProduct(ctx context.Context) (*[]entities.Product, error) {
 	var product *[]entities.Product
-	res := db.connection.WithContext(ctx).Preload("Categories").Order("are_buyed desc").Preload("Images").Find(&product)
+	res := db.connection.WithContext(ctx).Order("are_buyed desc").Preload("Images").Preload("Categories.Image").Find(&product)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -110,7 +111,7 @@ func (db *productConnection) PaginationProduct(pagination *entities.Pagination) 
 		}
 	}
 
-	find = find.Preload("Categories").Preload("Images").Find(&prod)
+	find = find.Preload("Categories.Image").Preload("Images").Find(&prod)
 
 	errFind := find.Error
 
@@ -148,4 +149,17 @@ func (db *productConnection) PaginationProduct(pagination *entities.Pagination) 
 	pagination.ToRow = toRow
 
 	return helpers.PaginationResult{Result: pagination}, totalPages
+}
+
+func (db *productConnection) UpdateBuy(ctx context.Context, prod *entities.Product) (*entities.Product, error) {
+	cartRp := NewCartRepository(db.connection)
+	cartItem, _ := cartRp.GetCartProd(ctx)
+	prod.AreBuyed = cartItem.Quantity
+	res := db.connection.WithContext(ctx).Model(&prod).Updates(entities.Product{
+		AreBuyed: prod.AreBuyed,
+	})
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return prod, nil
 }

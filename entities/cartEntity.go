@@ -12,6 +12,8 @@ type Cart struct {
 	SubTotal  int       `json:"sub_total"`
 	Price     int       `gorm:"not null" json:"price"`
 	Quantity  int       `gorm:"not null" json:"quantity"`
+	Unit      int       `json:"unit"`
+	UnitType  string    `json:"unit_type"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	ProductID string    `gorm:"not null" json:"product_id"`
