@@ -19,11 +19,11 @@ type ResponseCart struct {
 }
 
 type ResponseUser struct {
-	Success bool                   `json:"status"`
-	Message string                 `json:"message"`
-	Errors  interface{}            `json:"errors"`
-	Data    interface{}            `json:"data"`
-	Image   map[string]interface{} `json:"image"`
+	Success bool        `json:"status"`
+	Message string      `json:"message"`
+	Errors  interface{} `json:"errors"`
+	Data    interface{} `json:"data"`
+	Image   interface{} `json:"image"`
 }
 
 type ImageResponse struct {
@@ -76,7 +76,7 @@ func BuildSuccessAddCart(success bool, message string, data interface{}, total i
 	return res
 }
 
-func BuildSuccessUpdate(success bool, message string, data interface{}, image map[string]interface{}) ResponseUser {
+func BuildSuccessUpdate(success bool, message string, data interface{}, image interface{}) ResponseUser {
 	res := ResponseUser{
 		Success: success,
 		Message: message,
