@@ -15,6 +15,8 @@ type Order struct {
 	Total     int       `json:"total"`
 	SubTotal  int       `json:"sub_total"`
 	Cost      int       `json:"cost"`
+	Unit      int       `json:"unit"`
+	UnitType  string    `json:"unit_type"`
 	CreatedAt time.Time `json:"created_at"`
 	DeletedAt time.Time `json:"deleted_at"`
 	UserID    string    `gorm:"not null" json:"user_id"`

@@ -11,7 +11,7 @@ import (
 
 type UserRepository interface {
 	Create(ctx context.Context, user *entities.User) (*entities.User, error)
-	Update(ctx context.Context, user *entities.User) (*entities.User, error)
+	Update(ctx context.Context, user entities.User, id string) (entities.User, error)
 	FindById(ctx context.Context, id string) ([]*entities.User, error)
 	GetUser(userID string) *entities.User
 	// Image(user *entities.User) (string, error)
@@ -40,7 +40,7 @@ func (db *userConnection) Create(ctx context.Context, user *entities.User) (*ent
 	return user, nil
 }
 
-func (db *userConnection) Update(ctx context.Context, user *entities.User) (*entities.User, error) {
+func (db *userConnection) Update(ctx context.Context, user entities.User, id string) (entities.User, error) {
 	if user.Password != "" {
 		user.Password = hashAndSalt([]byte(user.Password))
 	} else {
@@ -49,9 +49,9 @@ func (db *userConnection) Update(ctx context.Context, user *entities.User) (*ent
 		user.Password = tempUser.Password
 	}
 
-	res := db.connection.WithContext(ctx).Joins("Image").Save(&user)
+	res := db.connection.WithContext(ctx).Model(&user).Where("id = ?", id).Updates(entities.User{Image: user.Image}).Find(&user)
 	if res.Error != nil {
-		return nil, res.Error
+		return entities.User{}, res.Error
 	}
 	return user, nil
 }

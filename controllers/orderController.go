@@ -75,7 +75,6 @@ func (c *orderController) GetOrder(ctx *gin.Context) {
 	if !res.Success {
 		code = http.StatusBadRequest
 	}
-
 	response := helpers.BuildResponse(true, "Ok", res)
 	ctx.AbortWithStatusJSON(code, response)
 
@@ -96,6 +95,7 @@ func (c *orderController) GetDetail(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, res)
 		return
 	}
+	// rsp := response.NewGetOrderResponse(list)
 	res := helpers.BuildResponse(true, "Ok", list)
 	ctx.JSON(http.StatusOK, res)
 }

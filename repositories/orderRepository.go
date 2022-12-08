@@ -8,14 +8,14 @@ import (
 
 	"github.com/aldisaputra17/dapur-fresh-id/entities"
 	"github.com/aldisaputra17/dapur-fresh-id/helpers"
+	"github.com/aldisaputra17/dapur-fresh-id/response"
 	"gorm.io/gorm"
 )
 
 type OrderRepository interface {
-	Create(ctx context.Context, order *entities.Order) (*entities.Order, error)
+	Create(ctx context.Context, order *entities.Order) (*response.OrderResponse, error)
 	GetOrderID(ctx context.Context, CartID string, UserID string) ([]*entities.Order, error)
 	GetOrder(ctx context.Context, paginate *entities.Pagination, userID string) (helpers.PaginationResult, int)
-	// PaginationOrder(pagination *entities.Pagination) (helpers.PaginationResult, int)
 	GetDetail(ctx context.Context, userID string, id string) (*entities.Order, error)
 	PatchStatus(ctx context.Context, order *entities.Order) (*entities.Order, error)
 }
@@ -39,7 +39,7 @@ func (db *orderConnection) GetOrderID(ctx context.Context, CartID string, UserID
 	return order, nil
 }
 
-func (db *orderConnection) Create(ctx context.Context, order *entities.Order) (*entities.Order, error) {
+func (db *orderConnection) Create(ctx context.Context, order *entities.Order) (*response.OrderResponse, error) {
 	CartRp := NewCartRepository(db.connection)
 
 	cartItem, err := CartRp.GetCartByid(ctx, order.CartID)
@@ -55,6 +55,8 @@ func (db *orderConnection) Create(ctx context.Context, order *entities.Order) (*
 	order.UserID = cartItem[0].UserID
 	order.SubTotal = cartItem[0].SubTotal
 	order.Total = cartItem[0].SubTotal + order.Cost
+	order.Unit = cartItem[0].Unit
+	order.UnitType = cartItem[0].UnitType
 	fmt.Println("model:", order.CartID)
 
 	orderItem, err := db.GetOrderID(ctx, order.CartID, order.UserID)
@@ -67,15 +69,26 @@ func (db *orderConnection) Create(ctx context.Context, order *entities.Order) (*
 		return nil, fmt.Errorf("order not foud, please add order again")
 	}
 	res := db.connection.WithContext(ctx).Save(&order)
-	db.connection.Preload("Carts.Products").Preload("User").Find(&order)
 	if res.Error != nil {
 		return nil, res.Error
 	}
+
 	if cartItem[0].UserID == order.UserID {
 		CartRp.Trancate(ctx, order.UserID, order.CartID)
 	}
-
-	return order, nil
+	rsp := &response.OrderResponse{
+		ID:        order.ID,
+		Name:      order.Name,
+		Catatan:   order.Catatan,
+		Address:   order.Address,
+		Status:    order.Status,
+		Total:     order.Total,
+		SubTotal:  order.SubTotal,
+		Cost:      order.Cost,
+		CreatedAt: order.CreatedAt,
+		Carts:     response.NewCartResponse(cartItem[0]),
+	}
+	return rsp, nil
 }
 
 func (db *orderConnection) GetOrder(ctx context.Context, paginate *entities.Pagination, userID string) (helpers.PaginationResult, int) {

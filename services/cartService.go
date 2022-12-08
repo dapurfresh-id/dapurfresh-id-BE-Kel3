@@ -8,18 +8,20 @@ import (
 	"github.com/aldisaputra17/dapur-fresh-id/entities"
 	"github.com/aldisaputra17/dapur-fresh-id/repositories"
 	"github.com/aldisaputra17/dapur-fresh-id/request"
+	"github.com/aldisaputra17/dapur-fresh-id/response"
 	"github.com/google/uuid"
 )
 
 type CartService interface {
-	AddCart(ctx context.Context, cartReq *request.RequestCart) (*entities.Cart, error)
+	AddCart(ctx context.Context, cartReq *request.RequestCart) (*response.CartResponse, error)
 	GetCount(ctx context.Context, userID string, count int64) (int64, error)
 	GetCarts(ctx context.Context, userID string) ([]*entities.Cart, error)
+	GetCart(ctx context.Context, id string, userID string) (*entities.Cart, error)
 	Refresh(ctx context.Context, userID string) error
 	GetTotalCartValue(cart []*entities.Cart) int
-	Delete(ctx context.Context, cart *entities.Cart) error
+	Delete(ctx context.Context, cart entities.Cart) error
 	Update(ctx context.Context, req *request.RequestCartUpdate) (*entities.Cart, error)
-	IsAllowedToEdit(ctx context.Context, userID string, cartID string) bool
+	IsAllowedToEdit(ctx context.Context, cartID string, userID string) bool
 }
 
 type cartService struct {
@@ -34,7 +36,7 @@ func NewCartService(repo repositories.CartRepository, time time.Duration) CartSe
 	}
 }
 
-func (service *cartService) AddCart(ctx context.Context, cartReq *request.RequestCart) (*entities.Cart, error) {
+func (service *cartService) AddCart(ctx context.Context, cartReq *request.RequestCart) (*response.CartResponse, error) {
 	id, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
@@ -112,10 +114,7 @@ func (service *cartService) GetTotalCartValue(cart []*entities.Cart) int {
 	return total
 }
 
-func (service *cartService) Delete(ctx context.Context, cart *entities.Cart) error {
-	ctx, cancel := context.WithTimeout(ctx, service.contextTimeOut)
-	defer cancel()
-
+func (service *cartService) Delete(ctx context.Context, cart entities.Cart) error {
 	return service.repository.Delete(ctx, cart)
 }
 
@@ -137,8 +136,18 @@ func (service *cartService) Update(ctx context.Context, req *request.RequestCart
 	return res, nil
 }
 
-func (service *cartService) IsAllowedToEdit(ctx context.Context, userID string, cartID string) bool {
-	c, err := service.repository.FindById(ctx, cartID)
+func (service *cartService) GetCart(ctx context.Context, id string, userID string) (*entities.Cart, error) {
+	ctx, cancel := context.WithTimeout(ctx, service.contextTimeOut)
+	defer cancel()
+	res, err := service.repository.FindById(ctx, id, userID)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (service *cartService) IsAllowedToEdit(ctx context.Context, cartID string, userID string) bool {
+	c, err := service.repository.FindById(ctx, cartID, userID)
 	if err != nil {
 		return false
 	}

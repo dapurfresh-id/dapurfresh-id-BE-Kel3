@@ -17,6 +17,7 @@ import (
 type CartController interface {
 	AddCart(ctx *gin.Context)
 	GetCarts(ctx *gin.Context)
+	GetCart(ctx *gin.Context)
 	Delete(ctx *gin.Context)
 	Update(ctx *gin.Context)
 }
@@ -89,8 +90,8 @@ func (c *cartController) Delete(ctx *gin.Context) {
 	}
 	claims := token.Claims.(jwt.MapClaims)
 	userID := fmt.Sprintf("%v", claims["user_id"])
-	if c.cartService.IsAllowedToEdit(ctx, userID, id) {
-		err := c.cartService.Delete(ctx, &cart)
+	if c.cartService.IsAllowedToEdit(ctx, id, userID) {
+		err := c.cartService.Delete(ctx, cart)
 		if err != nil {
 			res := helpers.BuildErrorResponse("Fail deleted carts", err.Error(), helpers.EmptyObj{})
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
@@ -120,7 +121,7 @@ func (c *cartController) Update(ctx *gin.Context) {
 	claims := token.Claims.(jwt.MapClaims)
 	userID := fmt.Sprintf("%v", claims["user_id"])
 	cartID := fmt.Sprintf("%v", req.ID)
-	if c.cartService.IsAllowedToEdit(ctx, userID, cartID) {
+	if c.cartService.IsAllowedToEdit(ctx, cartID, userID) {
 		req.UserID = userID
 	}
 	result, err := c.cartService.Update(ctx, req)
@@ -131,6 +132,25 @@ func (c *cartController) Update(ctx *gin.Context) {
 	}
 	response := helpers.BuildResponse(true, "Updated", result)
 	ctx.JSON(http.StatusOK, response)
+}
+
+func (c *cartController) GetCart(ctx *gin.Context) {
+	id := ctx.Param("id")
+	authHeader := ctx.GetHeader("Authorization")
+	token, errToken := c.jwtService.ValidateToken(authHeader)
+	if errToken != nil {
+		panic(errToken.Error())
+	}
+	claims := token.Claims.(jwt.MapClaims)
+	userID := fmt.Sprintf("%v", claims["user_id"])
+	result, err := c.cartService.GetCart(ctx, id, userID)
+	if err != nil {
+		res := helpers.BuildErrorResponse("Failed updated cart check your permissons", err.Error(), helpers.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+	res := helpers.BuildResponse(true, "Ok", result)
+	ctx.JSON(http.StatusOK, res)
 }
 
 func (c *cartController) getUserIDByToken(token string) string {
