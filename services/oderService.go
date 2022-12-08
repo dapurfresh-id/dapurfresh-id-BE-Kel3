@@ -9,14 +9,15 @@ import (
 	"github.com/aldisaputra17/dapur-fresh-id/helpers"
 	"github.com/aldisaputra17/dapur-fresh-id/repositories"
 	"github.com/aldisaputra17/dapur-fresh-id/request"
+	"github.com/aldisaputra17/dapur-fresh-id/response"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type OrderService interface {
-	Create(ctx context.Context, req *request.RequestOrderCreate) (*entities.Order, error)
-	GetOrder(ctx *gin.Context, paginat *entities.Pagination) (helpers.Response, error)
-	GetDetail(ctx context.Context, id string) (*entities.Order, error)
+	Create(ctx context.Context, req *request.RequestOrderCreate) (*response.OrderResponse, error)
+	GetOrder(ctx *gin.Context, paginat *entities.Pagination, userID string) (helpers.Response, error)
+	GetDetail(ctx context.Context, userID string, id string) (*entities.Order, error)
 	PatchStatus(ctx context.Context, req *request.RequestPatchOrder) (*entities.Order, error)
 }
 
@@ -32,7 +33,7 @@ func NewOrderService(orderRepo repositories.OrderRepository, time time.Duration)
 	}
 }
 
-func (service *orderService) Create(ctx context.Context, req *request.RequestOrderCreate) (*entities.Order, error) {
+func (service *orderService) Create(ctx context.Context, req *request.RequestOrderCreate) (*response.OrderResponse, error) {
 	id, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
@@ -58,8 +59,8 @@ func (service *orderService) Create(ctx context.Context, req *request.RequestOrd
 	return res, nil
 }
 
-func (service *orderService) GetOrder(ctx *gin.Context, paginat *entities.Pagination) (helpers.Response, error) {
-	operationResult, totalPages := service.orderRepo.GetOrder(ctx, paginat)
+func (service *orderService) GetOrder(ctx *gin.Context, paginat *entities.Pagination, userID string) (helpers.Response, error) {
+	operationResult, totalPages := service.orderRepo.GetOrder(ctx, paginat, userID)
 
 	if operationResult.Error != nil {
 		return helpers.Response{Success: true, Message: operationResult.Error.Error()}, nil
@@ -95,8 +96,8 @@ func (service *orderService) GetOrder(ctx *gin.Context, paginat *entities.Pagina
 	return helpers.BuildResponse(true, "Ok", data), nil
 }
 
-func (service *orderService) GetDetail(ctx context.Context, id string) (*entities.Order, error) {
-	res, err := service.orderRepo.GetDetail(ctx, id)
+func (service *orderService) GetDetail(ctx context.Context, userID string, id string) (*entities.Order, error) {
+	res, err := service.orderRepo.GetDetail(ctx, userID, id)
 	if err != nil {
 		return nil, err
 	}

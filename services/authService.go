@@ -55,7 +55,7 @@ func (service *authService) CreateUser(ctx context.Context, userReq *request.Req
 		Username:  userReq.Username,
 		Password:  userReq.Password,
 		Phone:     userReq.Phone,
-		ImageID:   userReq.ImageID,
+		Image:     "",
 		CreatedAt: time.Now(),
 	}
 	ctx, cancel := context.WithTimeout(ctx, service.contextTimeout)

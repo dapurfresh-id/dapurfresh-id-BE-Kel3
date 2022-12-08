@@ -35,7 +35,7 @@ var (
 	authController     controllers.AuthController      = controllers.NewAuthController(authService, jwtService)
 	categoryController controllers.CategoryController  = controllers.NewCategoryController(categoryService)
 	cartController     controllers.CartController      = controllers.NewCartController(cartService, jwtService)
-	userController     controllers.UserController      = controllers.NewUserController(userService, jwtService)
+	userController     controllers.UserController      = controllers.NewUserController(userService, jwtService, db)
 	imgController      controllers.ImageController     = controllers.NewImgController(imgService, db)
 	orderController    controllers.OrderController     = controllers.NewOrderController(orderService, jwtService)
 	productController  controllers.ProductController   = controllers.NewProductController(productService)
@@ -74,12 +74,14 @@ func main() {
 	{
 		cartRoutes.POST("", cartController.AddCart)
 		cartRoutes.GET("", cartController.GetCarts)
+		cartRoutes.GET("/:id", cartController.GetCart)
 		cartRoutes.DELETE("/:id", cartController.Delete)
 		cartRoutes.PUT("", cartController.Update)
 	}
 	userRoutes := api.Group("/user", middleware.AuthorizeJWT(jwtService))
 	{
 		userRoutes.PUT("", userController.Update)
+		userRoutes.GET("", userController.GetUser)
 	}
 	prodRoutes := api.Group("/product")
 	{
@@ -88,8 +90,6 @@ func main() {
 	imgRoutes := api.Group("/img")
 	{
 		imgRoutes.POST("", imgController.Create)
-		userRoutes.POST("", userController.Update)
-		userRoutes.GET("", userController.GetUser)
 	}
 	orderRoutes := api.Group("/checkout", middleware.AuthorizeJWT(jwtService))
 	{

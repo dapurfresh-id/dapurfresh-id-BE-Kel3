@@ -6,11 +6,12 @@ import (
 	"fmt"
 
 	"github.com/aldisaputra17/dapur-fresh-id/entities"
+	"github.com/aldisaputra17/dapur-fresh-id/response"
 	"gorm.io/gorm"
 )
 
 type CartRepository interface {
-	AddCart(ctx context.Context, cart *entities.Cart) (*entities.Cart, error)
+	AddCart(ctx context.Context, cart *entities.Cart) (*response.CartResponse, error)
 	GetProdIdAndUserId(ctx context.Context, userID string, productID string) ([]*entities.Cart, error)
 	GetCarts(ctx context.Context, userID string) ([]*entities.Cart, error)
 	GetCartByid(ctx context.Context, id string) ([]*entities.Cart, error)
@@ -18,9 +19,10 @@ type CartRepository interface {
 	CovertDetailCartMap(ctx context.Context, userID string) (map[string](*entities.Cart), error)
 	Update(ctx context.Context, cart *entities.Cart) (*entities.Cart, error)
 	UpdateDetailCart(ctx context.Context, cart *entities.Cart) (*entities.Cart, error)
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, cart entities.Cart) error
+	GetCartProd(ctx context.Context) (*entities.Cart, error)
 	Trancate(ctx context.Context, userID string, id string) error
-	FindById(ctx context.Context, id string) (*entities.Cart, error)
+	FindById(ctx context.Context, id string, userID string) (*entities.Cart, error)
 }
 
 type cartConnection struct {
@@ -42,7 +44,7 @@ func (db *cartConnection) GetProdIdAndUserId(ctx context.Context, userID string,
 	return carts, nil
 }
 
-func (db *cartConnection) AddCart(ctx context.Context, cart *entities.Cart) (*entities.Cart, error) {
+func (db *cartConnection) AddCart(ctx context.Context, cart *entities.Cart) (*response.CartResponse, error) {
 	prR := NewProductRepository(db.connection)
 
 	prodItems, err := prR.FindProductById(ctx, cart.ProductID)
@@ -50,14 +52,12 @@ func (db *cartConnection) AddCart(ctx context.Context, cart *entities.Cart) (*en
 		return nil, err
 	}
 
-	// if len(prodItems) <= 0 {
-	// 	lenErr := fmt.Errorf("Product doesnt exists")
-	// 	return nil, lenErr
-	// }
-
 	cart.SubTotal = prodItems.Price * cart.Quantity
 	cart.Name = prodItems.Name
 	cart.Price = prodItems.Price
+	cart.Unit = prodItems.Unit
+	cart.UnitType = prodItems.UnitType
+	prodItems.AreBuyed = prodItems.AreBuyed + cart.Quantity
 	fmt.Println("model :", cart.UserID, cart.ProductID)
 
 	cartItems, err := db.GetProdIdAndUserId(ctx, cart.UserID, cart.ProductID)
@@ -70,17 +70,32 @@ func (db *cartConnection) AddCart(ctx context.Context, cart *entities.Cart) (*en
 		return nil, errors.New("Item already exists in cart. Please delete and add again ")
 	}
 
-	res := db.connection.WithContext(ctx).Create(&cart)
-	db.connection.Preload("Products.Image").Find(&cart)
+	res := db.connection.WithContext(ctx).Preload("Products.Images").Create(&cart)
 	if res.Error != nil {
 		return nil, err
 	}
-	return cart, nil
+	_, errUpdate := prR.UpdateBuy(ctx, prodItems)
+	if errUpdate != nil {
+		return nil, errUpdate
+	}
+	rsp := &response.CartResponse{
+		ID:        cart.ID,
+		Name:      cart.Name,
+		SubTotal:  cart.SubTotal,
+		Price:     cart.Price,
+		Quantity:  cart.Quantity,
+		Unit:      cart.Unit,
+		UnitType:  cart.UnitType,
+		CreatedAt: cart.CreatedAt,
+		ProductID: cart.ProductID,
+		Products:  response.NewProductResponse(prodItems),
+	}
+	return rsp, nil
 }
 
 func (db *cartConnection) GetCarts(ctx context.Context, userID string) ([]*entities.Cart, error) {
 	var carts []*entities.Cart
-	res := db.connection.WithContext(ctx).Where("user_id = ?", userID).Preload("Products.Categories").Preload("Products.Image").Preload("User").Find(&carts)
+	res := db.connection.WithContext(ctx).Where("user_id = ?", userID).Preload("Products.Images").Preload("Products.Categories").Preload("User").Find(&carts)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -123,9 +138,8 @@ func (db *cartConnection) Update(ctx context.Context, cart *entities.Cart) (*ent
 	return cart, nil
 }
 
-func (db *cartConnection) Delete(ctx context.Context, id string) error {
-	var cart *entities.Cart
-	res := db.connection.WithContext(ctx).Where("id = ?", id).Delete(&cart)
+func (db *cartConnection) Delete(ctx context.Context, cart entities.Cart) error {
+	res := db.connection.WithContext(ctx).Delete(cart)
 	if res.Error != nil {
 		return nil
 	}
@@ -134,16 +148,16 @@ func (db *cartConnection) Delete(ctx context.Context, id string) error {
 
 func (db *cartConnection) UpdateDetailCart(ctx context.Context, cart *entities.Cart) (*entities.Cart, error) {
 	cartID := fmt.Sprintf("%v", cart.ID)
-	cartItems, err := db.FindById(ctx, cartID)
+	userID := fmt.Sprintf("%v", cart.UserID)
+	cartItems, err := db.FindById(ctx, cartID, userID)
 	if err != nil {
 		return nil, err
 	}
-
 	cart.SubTotal = cartItems.Price * cart.Quantity
 
 	res := db.connection.WithContext(ctx).Model(&cart).Updates(entities.Cart{
 		Quantity: cart.Quantity, SubTotal: cart.SubTotal})
-	db.connection.Preload("Products.Categories").Find(&cart)
+	db.connection.Preload("Products.Images").Preload("Products.Categories").Preload("User").Find(&cart)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -151,9 +165,9 @@ func (db *cartConnection) UpdateDetailCart(ctx context.Context, cart *entities.C
 	return cart, nil
 }
 
-func (db *cartConnection) FindById(ctx context.Context, id string) (*entities.Cart, error) {
+func (db *cartConnection) FindById(ctx context.Context, id string, userID string) (*entities.Cart, error) {
 	var cart *entities.Cart
-	res := db.connection.WithContext(ctx).Where("id = ?", id).Preload("Products").Find(&cart)
+	res := db.connection.WithContext(ctx).Where("id = ? and user_id = ?", id, userID).Preload("Products.Images").Preload("Products.Categories").Preload("User").Find(&cart)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -184,4 +198,13 @@ func (db *cartConnection) GetCount(ctx context.Context, userID string, count int
 		return 0, res.Error
 	}
 	return count, nil
+}
+
+func (db *cartConnection) GetCartProd(ctx context.Context) (*entities.Cart, error) {
+	var cart *entities.Cart
+	res := db.connection.WithContext(ctx).First(&cart)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return cart, nil
 }
