@@ -32,6 +32,7 @@ var (
 	productService     services.ProductService         = services.NewProductService(productRepository, contextTimeOut)
 	imgService         services.ImageService           = services.NewImage()
 	orderService       services.OrderService           = services.NewOrderService(orderRepository, contextTimeOut)
+	emailService       services.EmailService           = services.NewEmailService()
 	authController     controllers.AuthController      = controllers.NewAuthController(authService, jwtService)
 	categoryController controllers.CategoryController  = controllers.NewCategoryController(categoryService)
 	cartController     controllers.CartController      = controllers.NewCartController(cartService, jwtService)
@@ -61,7 +62,7 @@ func main() {
 		productRoutes.GET("/", productController.GetAllProduct)
 		productRoutes.GET("/:id", productController.GetProductById)
 		productRoutes.GET("/search", productController.PaginationProduct)
-		productRoutes.GET("/category", productController.GetProductByCategory)
+		productRoutes.GET("/category/:category_id", productController.GetProductByCategory)
 		productRoutes.GET("/popular", productController.GetPopularProduct)
 	}
 	categoryRoutes := api.Group("/category")
