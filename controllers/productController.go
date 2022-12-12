@@ -87,7 +87,7 @@ func (c *productController) GetProductById(ctx *gin.Context) {
 }
 
 func (c *productController) GetProductByCategory(ctx *gin.Context) {
-	categoryId := ctx.Query("category_id")
+	categoryId := ctx.Param("category_id")
 	foundProduct, err := c.productService.FindProductByCategory(ctx, categoryId)
 	if err != nil {
 		response := helpers.BuildErrorResponse("Failed to readed", err.Error(), helpers.EmptyObj{})

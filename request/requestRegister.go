@@ -5,5 +5,4 @@ type RequestRegister struct {
 	Name     string `json:"name" form:"name" binding:"required,min=6" `
 	Phone    string `json:"phone" form:"phone" binding:"required,max=12" `
 	Password string `json:"password" form:"password" binding:"required,min=6"`
-	ImageID  string `json:"user_id" form:"image_id,omitempty" `
 }
